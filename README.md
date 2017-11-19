@@ -1,3 +1,3 @@
 # sft
 search of the fastest trajectory
-De Adrien, Abdoulaye.
+De Adrien, Abdoulaye, Nadir.
