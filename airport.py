@@ -34,7 +34,7 @@ class AirportList:
 
 
 def from_file(filename):
-    """from_file(str) return AirportMap: lit un fichier de description de l'ensemble des aérodromes"""
+    """from_file(str) return AirportList: lit un fichier de description de l'ensemble des aérodromes"""
     print("Chargement des aérodromes", filename + '...')
     airportList = AirportList()
     file = open(filename)
