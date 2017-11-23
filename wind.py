@@ -33,20 +33,16 @@ class WindPlan(Wind3D):
     def __init__(self, alt, date):
         super().__init__(date)
         self.alt = alt
-        self.list = []
+        self.dict = {}
 
     def __repr__(self):
         return "<wind.WindPlan {0.alt}>".format(self)
 
     def add_windLocal(self, wind):
-        self.list = np.append(self.list, wind)
+        self.dict[(wind.coord.x, wind.coord.y)] = wind
 
     def get_windLocal(self, coord):
-        wind=None
-        for w in self.list:
-            if w.coord == coord:
-                wind=w
-        return wind
+        return self.dict[(coord.x, coord.y)]
 
     def get_map(self):
         return self.list.reshape(27, 20)
@@ -119,7 +115,7 @@ def from_file(filename):
             val = float(words[5])
             coord = geometry.Point(long, lat)
             wind3D = wind3D_dict[date]
-            windPlan = wind3D.dict[alt]
+            windPlan = wind3D.get_windPlan(alt)
             if param == 'u':
                 windLocal = WindLocal(coord, alt, date)
                 windLocal.add_valToVect(val, param)
@@ -131,7 +127,4 @@ def from_file(filename):
 
 
 if __name__ == '__main__':
-    dic = from_file(WIND_FILE)
-    L=dic[20171104000000].dict[400].list
-    print(dic)
-
+    print(from_file(WIND_FILE))
