@@ -8,17 +8,20 @@ class Wind3D:
     """Description du vent global à une date donnée (ensemble des vents locaux sur l'ensemble des altitudes),
     avec les attributs suivants:
             - date: int (date des mesures)
-            - wind_dict: dict[key= altitude] = windPlan"""
+            - dict: dict[key= altitude] = windPlan"""
 
     def __init__(self, date):
         self.date = date
-        self.wind_dict = {}
+        self.dict = {}
 
     def __repr__(self):
         return "<wind.Wind3D {0.date}>".format(self)
 
     def add_windPlan(self, windPlan):
-        self.wind_dict[windPlan.alt] = windPlan
+        self.dict[windPlan.alt] = windPlan
+
+    def get_windPlan(self, alt):
+        return self.dict[alt]
 
 
 class WindPlan(Wind3D):
@@ -39,12 +42,14 @@ class WindPlan(Wind3D):
         self.list = np.append(self.list, wind)
 
     def get_windLocal(self, coord):
-        for wind in self.list:
-            if wind.coord == coord:
-                return wind
+        wind=None
+        for w in self.list:
+            if w.coord == coord:
+                wind=w
+        return wind
 
-                # def get_map(self):
-                #    return self.list.reshape(27, 20)
+    def get_map(self):
+        return self.list.reshape(27, 20)
 
 
 class WindLocal(WindPlan):
@@ -89,11 +94,8 @@ def from_file(filename):
     param = None
 
     file = open(filename)
-    i=0
     for line in file:
-        i+=1
         words = line.strip().split()
-        print(i,words)
         if 'U' in words:
             param = 'u'
         if 'V' in words:
@@ -108,16 +110,16 @@ def from_file(filename):
                 wind3D.add_windPlan(windPlan)
             else:
                 wind3D = wind3D_dict[date]
-                if alt not in wind3D.wind_dict:
+                if alt not in wind3D.dict:
                     windPlan = WindPlan(alt, date)
                     wind3D.add_windPlan(windPlan)
         if words[0] == 'LONGITUDE':
-            long = words[1]
-            lat = words[2]
-            val = words[5]
+            long = int(words[1])
+            lat = int(words[3])
+            val = float(words[5])
             coord = geometry.Point(long, lat)
             wind3D = wind3D_dict[date]
-            windPlan = wind3D.wind_dict[alt]
+            windPlan = wind3D.dict[alt]
             if param == 'u':
                 windLocal = WindLocal(coord, alt, date)
                 windLocal.add_valToVect(val, param)
@@ -129,4 +131,7 @@ def from_file(filename):
 
 
 if __name__ == '__main__':
-    print(from_file(WIND_FILE))
+    dic = from_file(WIND_FILE)
+    L=dic[20171104000000].dict[400].list
+    print(dic)
+
