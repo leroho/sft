@@ -1,7 +1,8 @@
 import geometry
+import  cartographie
 import numpy as np
 
-WIND_FILE = "DATA/bdap2017002362248.txt"
+WIND_FILE = "Données/bdap2017002362248.txt"
 
 
 class Wind3D:
@@ -39,30 +40,27 @@ class WindPlan(Wind3D):
         return "<wind.WindPlan {0.alt}>".format(self)
 
     def add_windLocal(self, wind):
-        self.dict[(wind.coord.x, wind.coord.y)] = wind
+        self.dict[(wind.coord_geo.x, wind.coord_geo.y)] = wind
 
-    def get_windLocal(self, coord):
-        return self.dict[(coord.x, coord.y)]
-
-    def get_map(self):
-        return self.list.reshape(27, 20)
+    def get_windLocal(self, coord_geo):
+        return self.dict[(coord_geo.x, coord_geo.y)]
 
 
 class WindLocal(WindPlan):
     """Description du vent local (mesure point), avec les attributs suivants:
         - u: float (vitesse du vent en m/s suivant l'est)
         - v: float (vitesse du vent en m/s suivant le nord)
-        - coord: Point tuple (coordonnées géographiques des mesures)
+        - coord_geo: Point tuple (coordonnées géographiques des mesures)
         - alt: int (altitude de la mesure)
         - date: int (date de la mesure)"""
 
-    def __init__(self, coord, alt, date):
+    def __init__(self, coord_geo, alt, date):
         super().__init__(alt, date)
-        self.coord = coord
+        self.coord_geo = coord_geo
         self.u = None
         self.v = None
         self.vect = None
-
+        self.coord_plan = cartographie.coord_plan(coord_geo.x, coord_geo.y)
     def __repr__(self):
         return "<wind.WindLocal {0.vect} {0.coord}>".format(self)
 
@@ -71,7 +69,7 @@ class WindLocal(WindPlan):
             self.u = val
         if param == 'v':
             self.v = val
-        self.vect = np.array((self.u, self.v))
+        self.vect = geometry.Vect(self.u, self.v)
 
     def get_dir(self):
         return np.degrees(np.arctan2(self.v, self.u))
@@ -84,7 +82,7 @@ def from_file(filename):
     """from_file(str) return Wind3D : reads a wind map description file"""
     print("Loading wind map", filename + '...')
     wind3D_dict = {}
-    coord = None
+    coord_geo = None
     alt = None
     date = None
     param = None
@@ -110,21 +108,20 @@ def from_file(filename):
                     windPlan = WindPlan(alt, date)
                     wind3D.add_windPlan(windPlan)
         if words[0] == 'LONGITUDE':
-            long = int(words[1])
-            lat = int(words[3])
+            long = int(words[1])/1000
+            lat = int(words[3])/1000
             val = float(words[5])
-            coord = geometry.Point(long, lat)
+            coord_geo = geometry.Point(long, lat)
             wind3D = wind3D_dict[date]
             windPlan = wind3D.get_windPlan(alt)
             if param == 'u':
-                windLocal = WindLocal(coord, alt, date)
+                windLocal = WindLocal(coord_geo, alt, date)
                 windLocal.add_valToVect(val, param)
                 windPlan.add_windLocal(windLocal)
             else:
-                windPlan.get_windLocal(coord).add_valToVect(val, param)
+                windPlan.get_windLocal(coord_geo).add_valToVect(val, param)
     file.close()
     return wind3D_dict
-
 
 if __name__ == '__main__':
     print(from_file(WIND_FILE))
