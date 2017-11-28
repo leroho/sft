@@ -1,7 +1,7 @@
 """Geometry classes and utilities."""
 import numpy as np
 import airport
-#import matplotlib.pyplot as pl
+import matplotlib.pyplot as pl
 
 APT_FILE = 'DATA/aerodrome.txt'
 
@@ -21,7 +21,7 @@ class Point(object):
         self.y = y
 
     def __repr__(self):
-        return "({0.x}, {0.y})".format(self)
+        return "<geometry.Point ({0.x}, {0.y})>".format(self)
 
     def __eq__(self, other):
         return self.x == other.x and self.y == other.y
@@ -57,7 +57,7 @@ class Vect():
         self.v = v
 
     def __repr__(self):
-        return "({0.x}, {0.y})".format(self)
+        return "<geometry.Vect ({0.u}, {0.v})>".format(self)
 
     def __eq__(self, other):
         return self.u == other.u and self.v == other.v
@@ -92,11 +92,3 @@ def coord_plan(coord_geo):
     x = coord_geo.x * LONG_TO_X
     y = coord_geo.y * LAT_TO_Y
     return Point(x, y)
-
-
-if __name__ == "__main__":
-    airportList = airport.from_file(APT_FILE)
-    for oaci in airportList.apt_dict:
-        point = airportList.get_coord_plan(oaci)
-        pl.plot(point.x, point.y, '+')
-    pl.show()

@@ -1,8 +1,6 @@
 import geometry
 import numpy as np
 
-WIND_FILE = "DATA/bdap2017002362248.txt"
-
 
 class Wind3D:
     """Description du vent global à une date donnée (ensemble des vents locaux sur l'ensemble des altitudes),
@@ -41,15 +39,18 @@ class WindPlan(Wind3D):
     def add_windLocal(self, wind):
         self.dict[(wind.coord_geo.x, wind.coord_geo.y)] = wind
 
-    def get_windLocal(self, coord):
-        return self.dict[(coord.x, coord.y)]
+    def get_windLocal(self, coord_geo):
+        return self.dict[(coord_geo.x, coord_geo.y)]
 
-    def generate_list_wind(self, A, B):
+    def generate_windInSquare(self, A, B):
         list_wind = []
         P1, P2 = generate_points(A, B)
-        for i in np.arange(P1.x, P2.x, 0.5):
-            for j in np.arange(P1.y, P2.y, 0.5):
-                list_wind.append(self.dict[(i, j)])
+        for i in np.arange(P1.x, P2.x + 0.5, 0.5):
+            for j in np.arange(P1.y, P2.y + 0.5, 0.5):
+                try:
+                    list_wind.append(self.dict[(i, j)])
+                except KeyError:
+                    pass
         return list_wind
 
 
@@ -127,8 +128,8 @@ def from_file(filename):
                     windPlan = WindPlan(alt, date)
                     wind3D.add_windPlan(windPlan)
         if words[0] == 'LONGITUDE':
-            long = int(words[1])/1000
-            lat = int(words[3])/1000
+            long = int(words[1]) / 1000
+            lat = int(words[3]) / 1000
             val = float(words[5])
             coord_geo = geometry.Point(long, lat)
             wind3D = wind3D_dict[date]
@@ -142,6 +143,7 @@ def from_file(filename):
     file.close()
     return wind3D_dict
 
-
 if __name__ == '__main__':
-    print(from_file(WIND_FILE))
+    w3D = from_file("DATA/bdap2017002362248.txt")[20171104000000]
+    wp=w3D.get_windPlan(400)
+    print(wp.dict.items())

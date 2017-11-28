@@ -49,3 +49,9 @@ def from_file(filename):
         airportList.add_apt(airport)
     file.close()
     return airportList
+
+
+if __name__ == '__main__':
+    airportList = from_file(APT_FILE)
+    for (oaci, airport) in airportList.apt_dict.items():
+        print(oaci, airport.coord_geo)
