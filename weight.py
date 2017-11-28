@@ -7,8 +7,6 @@ VITESSE_CROISIERE = 200
 def windVectSquare(A, B, windPlan):
     windVect = geometry.Vect(0, 0)
     list_wind = windPlan.generate_windInSquare(A, B)
-    print(A,B)
-    print(list_wind)
     n = len(list_wind)
     for wind in list_wind:
         windVect += wind.vect

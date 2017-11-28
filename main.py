@@ -28,11 +28,13 @@ if __name__ == "__main__":
     airportList = airport.from_file(APT_FILE)
     graphe = arbre_oaci.arbre_creation(airportList)
     path = find_path(graphe)[2]
+    print(path)
     for oaci in airportList.apt_dict:
         point = airportList.get_coord_plan(oaci)
         pl.plot(point.x, point.y, '+')
     dico = graphe.nodes_dict
+    print(dico)
     for i in path:
         coord = dico[i].coord
-        pl.plot(coord.x, coord.y, "or")
+        #pl.plot(coord.x, coord.y, "or")
     pl.show()

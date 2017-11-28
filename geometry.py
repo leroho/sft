@@ -1,7 +1,5 @@
 """Geometry classes and utilities."""
 import numpy as np
-import airport
-import matplotlib.pyplot as pl
 
 APT_FILE = 'DATA/aerodrome.txt'
 
