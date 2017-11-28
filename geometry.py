@@ -1,8 +1,6 @@
 """Geometry classes and utilities."""
 import numpy as np
 
-APT_FILE = 'DATA/aerodrome.txt'
-
 R_TERRE = 6371000
 LAT_MOY = 46
 L = LAT_MOY * (np.pi / 180)

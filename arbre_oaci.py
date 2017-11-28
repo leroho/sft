@@ -1,4 +1,5 @@
 import weight
+import geometry
 import wind
 
 FILE1 = "DATA/bdap2017002362248.txt"
@@ -6,7 +7,7 @@ FILE2 = "DATA/bdap2017002362250.txt"
 WIND3D_DICT1 = wind.from_file(FILE1)
 WIND3D_DICT2 = wind.from_file(FILE2)
 DATES = [20171104000000, 20171104060000, 20171104120000, 20171104180000]
-X = 30 * 60
+X = 10 * 60
 
 
 class Graph():
@@ -24,10 +25,11 @@ class Graph():
 
 
 class Node():
-    def __init__(self, id_oaci, coord):
+    def __init__(self, id_oaci, coord_geo):
         self.dico = {}  # dictionnaire code OACI ==> aéroport voisins accéssibles
         self.id = id_oaci
-        self.coord = coord
+        self.coord_geo = coord_geo
+        self.coord_plan = geometry.coord_plan(coord_geo)
         self.parent = None
         self.H = 0
         self.G = 0
@@ -47,7 +49,7 @@ class Node():
     def voisins(self, windPlan, graphe, n):
         for (id, node) in graphe.nodes_dict.items():
             if id != self.id:
-                poids = weight.duration_calcul(self.coord, node.coord, windPlan, n)
+                poids = weight.duration_calcul(self.coord_geo, node.coord_geo, windPlan, n)
                 if poids <= X:
                     self.add(node, poids)
         return self.dico  # renvoie tous les voisins
@@ -62,7 +64,7 @@ def arbre_creation(airportList):
 
 
 def diagonal(node1, node2, windPlan, n):
-    return 0 if node1.id == node2.id else weight.duration_calcul(node1.coord, node2.coord, windPlan, n)
+    return 0 if node1.id == node2.id else weight.duration_calcul(node1.coord_geo, node2.coord_geo, windPlan, n)
 
 
 def convert_into_format(x):
@@ -102,7 +104,7 @@ def astar(dep, arr, alt, time_start, graphe):
         windPlan = wind3D.dict[alt]
 
         # Loop through the node's children/siblings
-        for (id, duration) in current.voisins(windPlan, graphe, 1).items():
+        for (id, duration) in current.voisins(windPlan, graphe, 2).items():
             node = graphe.nodes_dict[id]
             # If it is already in the closed set, skip it
             if node in closedset:
@@ -124,7 +126,7 @@ def astar(dep, arr, alt, time_start, graphe):
             else:
                 # If it isn't in the open set, calculate the G and H score for the node
                 node.G = current.G + duration
-                node.H = diagonal(node, arr, windPlan, 1)
+                node.H = diagonal(node, arr, windPlan, 2)
                 # Set the parent to our current item
                 node.parent = current_id
                 # Add it to the set
