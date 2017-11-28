@@ -1,5 +1,4 @@
 import geometry
-import cartographie
 import numpy as np
 
 WIND_FILE = "DATA/bdap2017002362248.txt"
@@ -66,7 +65,7 @@ class WindLocal(WindPlan):
     def __init__(self, coord_geo, alt, date):
         super().__init__(alt, date)
         self.coord_geo = coord_geo
-        self.coord_plan = cartographie.coord_plan(coord_geo)
+        self.coord_plan = geometry.coord_plan(coord_geo)
         self.u = None
         self.v = None
         self.vect = None

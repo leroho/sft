@@ -1,5 +1,16 @@
 """Geometry classes and utilities."""
-from numpy import arccos
+import numpy as np
+import airport
+#import matplotlib.pyplot as pl
+
+APT_FILE = 'DATA/aerodrome.txt'
+
+R_TERRE = 6371000
+LAT_MOY = 46
+L = LAT_MOY * (np.pi / 180)
+
+LONG_TO_X = R_TERRE * np.cos(L) * (np.pi / 180)
+LAT_TO_Y = R_TERRE * (np.pi / 180)
 
 
 class Point(object):
@@ -74,4 +85,18 @@ class Vect():
         return self.u * other.v - self.v * other.u
 
     def angle(self, other):
-        return arccos(self.sca(other) / (abs(self) * abs(other)))
+        return np.arccos(self.sca(other) / (abs(self) * abs(other)))
+
+
+def coord_plan(coord_geo):
+    x = coord_geo.x * LONG_TO_X
+    y = coord_geo.y * LAT_TO_Y
+    return Point(x, y)
+
+
+if __name__ == "__main__":
+    airportList = airport.from_file(APT_FILE)
+    for oaci in airportList.apt_dict:
+        point = airportList.get_coord_plan(oaci)
+        pl.plot(point.x, point.y, '+')
+    pl.show()
