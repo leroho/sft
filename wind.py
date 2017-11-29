@@ -142,8 +142,3 @@ def from_file(filename):
                 windPlan.get_windLocal(coord_geo).add_valToVect(val, param)
     file.close()
     return wind3D_dict
-
-if __name__ == '__main__':
-    w3D = from_file("DATA/bdap2017002362248.txt")[20171104000000]
-    wp=w3D.get_windPlan(400)
-    print(wp.dict.items())

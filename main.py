@@ -6,7 +6,7 @@ APT_FILE = "DATA/aerodrome.txt"
 
 ALTITUDES = [400, 500, 600, 700, 800]
 DEP = "LFBO"  # input("aérodrme de départ : ")
-ARR = "LFRO"  # input("aérodrme de d'arriver : ")
+ARR = "LFPG"  # input("aérodrme de d'arriver : ")
 TIME_START = 0  # input("heure de départ : ")
 
 
@@ -17,7 +17,6 @@ def find_path(graphe):
     for alt in ALTITUDES:
         result = arbre_oaci.astar(dep, arr, alt, TIME_START, graphe)
         dict[alt] = result
-    print(dict)
     best_altitude = min(dict, key=lambda alt: list(dict[alt].items())[0][0])
     minimum_duration = list(dict[best_altitude].items())[0][0]
     best_path = dict[best_altitude][minimum_duration]
@@ -31,7 +30,7 @@ if __name__ == "__main__":
     info_path = find_path(graphe)
     path = info_path[2]
     alt = info_path[1]
-    print(path,alt)
+    print(path, alt)
     for oaci in airportList.apt_dict:
         point = airportList.get_coord_plan(oaci)
         pl.plot(point.x, point.y, '+')

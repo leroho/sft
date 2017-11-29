@@ -16,10 +16,12 @@ def windVectSquare(A, B, windPlan):
 def duration_calcul(A, B, windPlan, n):
     duration = 0
     for k in range(n):
-        Ai = A + (B.__sub__(A)).__rmul__(k / n)
-        Bi = A + (B.__sub__(A)).__rmul__((k + 1) / n)
-        windVect = windVectSquare(Ai, Bi, windPlan)
-        ABi_vect = geometry.Vect((Bi.__sub__(Ai)).x, (Bi.__sub__(Ai)).y)
+        Aiplan = A + (B.__sub__(A)).__rmul__(k / n)
+        Aigeo = geometry.coord_geo(Aiplan)
+        Biplan = A + (B.__sub__(A)).__rmul__((k + 1) / n)
+        Bigeo = geometry.coord_geo(Biplan)
+        windVect = windVectSquare(Aigeo, Bigeo, windPlan)
+        ABi_vect = geometry.Vect((Biplan.__sub__(Aiplan)).x, (Biplan.__sub__(Aiplan)).y)
         angle_au_vent = ABi_vect.angle(windVect)
         vent_effectif = abs(windVect) * cos(angle_au_vent)
         derive = (60 / VITESSE_CROISIERE) * abs(windVect) * sin(angle_au_vent) * (pi / 180)

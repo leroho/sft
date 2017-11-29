@@ -88,3 +88,9 @@ def coord_plan(coord_geo):
     x = coord_geo.x * LONG_TO_X
     y = coord_geo.y * LAT_TO_Y
     return Point(x, y)
+
+
+def coord_geo(coord_plan):
+    x = coord_plan.x / LONG_TO_X
+    y = coord_plan.y / LAT_TO_Y
+    return Point(x, y)
