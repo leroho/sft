@@ -31,7 +31,7 @@ def arbre_creation():
         liste_noeuds.append(n)
     return liste_noeuds
 
-# arbre=arbre_creation()
+arbre=arbre_creation()
 # a10=arbre[10]
 # print(len(a10.dico))
 # print(a10.dico)
