@@ -1,9 +1,5 @@
 import geometry
-import  cartographie
 import numpy as np
-
-WIND_FILE = "Données/bdap2017002362248.txt"
-
 
 class Wind3D:
     """Description du vent global à une date donnée (ensemble des vents locaux sur l'ensemble des altitudes),
@@ -40,10 +36,10 @@ class WindPlan(Wind3D):
         return "<wind.WindPlan {0.alt}>".format(self)
 
     def add_windLocal(self, wind):
-        self.dict[(wind.coord_geo.x, wind.coord_geo.y)] = wind
+        self.dict[(wind.coord.long, wind.coord.lat)] = wind
 
-    def get_windLocal(self, coord_geo):
-        return self.dict[(coord_geo.x, coord_geo.y)]
+    def get_windLocal(self, coord):
+        return self.dict[(coord.long, coord.lat)]
 
 
 class WindLocal(WindPlan):
@@ -54,13 +50,13 @@ class WindLocal(WindPlan):
         - alt: int (altitude de la mesure)
         - date: int (date de la mesure)"""
 
-    def __init__(self, coord_geo, alt, date):
+    def __init__(self, coord, alt, date):
         super().__init__(alt, date)
-        self.coord_geo = coord_geo
+        self.coord = coord
         self.u = None
         self.v = None
         self.vect = None
-        self.coord_plan = cartographie.coord_plan(coord_geo.x, coord_geo.y)
+
     def __repr__(self):
         return "<wind.WindLocal {0.vect} {0.coord}>".format(self)
 
@@ -80,9 +76,8 @@ class WindLocal(WindPlan):
 
 def from_file(filename):
     """from_file(str) return Wind3D : reads a wind map description file"""
-    print("Loading wind map", filename + '...')
     wind3D_dict = {}
-    coord_geo = None
+    coord = None
     alt = None
     date = None
     param = None
@@ -111,17 +106,17 @@ def from_file(filename):
             long = int(words[1])/1000
             lat = int(words[3])/1000
             val = float(words[5])
-            coord_geo = geometry.Point(long, lat)
+            coord = geometry.Point(long, lat)
             wind3D = wind3D_dict[date]
             windPlan = wind3D.get_windPlan(alt)
             if param == 'u':
-                windLocal = WindLocal(coord_geo, alt, date)
+                windLocal = WindLocal(coord, alt, date)
                 windLocal.add_valToVect(val, param)
                 windPlan.add_windLocal(windLocal)
             else:
-                windPlan.get_windLocal(coord_geo).add_valToVect(val, param)
+                windPlan.get_windLocal(coord).add_valToVect(val, param)
     file.close()
     return wind3D_dict
 
 if __name__ == '__main__':
-    print(from_file(WIND_FILE))
+    print(from_file("Données/bdap2017002362248.txt"))

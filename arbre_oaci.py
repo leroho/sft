@@ -1,14 +1,10 @@
-from cartographie import coords_dict
-from weigth import  duration_calcul
+import geometry
 from wind import from_file
-import numpy as np
 
 FILE1 = "Données/bdap2017002362248.txt"
 FILE2 = "Données/bdap2017002362250.txt"
 WIND3D_DICT1 = from_file(FILE1)
 WIND3D_DICT2 = from_file(FILE2)
-DATES = [20171104000000, 20171104060000, 20171104120000, 20171104180000]
-X = 30*60
 
 class Graph():
     def __init__(self):
@@ -33,91 +29,115 @@ class Node():
     def remove(self,oaci_voisin):
         self.dico.pop(oaci_voisin) #supprimer un voisin
     def __repr__(self):
-        return "<Node {0.id}>".format(self)
+        return "<Node {0.id}: {0.coord}>".format(self)
     def dans_dico(self,oaci_test):
         return oaci_test in self.dico #vérification apartennance aux voisins
-    def voisins(self, windPlan, graphe, n):
+    def voisins(self, airplane, windPlan, graphe):
         for (id, node) in graphe.nodes_dict.items():
             if id != self.id :
-                poids = duration_calcul(self.coord, node.coord, windPlan, n)
-                if poids <= X:
-                    self.add(node, poids)
+                duration = airplane.fligth(self.coord, node.coord, windPlan)[-1]
+                if duration <= airplane.X:
+                    self.add(node, duration)
         return self.dico #renvoie tous les voisins
 
+class Fligth():
+    def __init__(self, dep, arr, alt, time_start):
+        self.dep = dep
+        self.arr = arr
+        self.alt = alt
+        self.time_start = time_start
+        self.duration = None
+        self.path = None
+    def __repr__(self):
+        return "fligth : alt = {0.alt} hPa ; ".format(self) + "duration = " + str(hms(self.duration)) + " ; path = {0.path}".format(self)
 
-def arbre_creation():
-    aeroports_coords = coords_dict("Données/aerodrome.txt")
+def arbre_creation(filename):
+    aeroports_coords = geometry.from_file(filename)
     graphe = Graph()
     for (id_oaci, coord) in aeroports_coords.items():
         node = Node(id_oaci, coord)
         graphe.add(node)
     return graphe
 
-def diagonal(node1, node2, windPlan, n):
-    return 0 if node1.id  == node2.id else duration_calcul(node1.coord, node2.coord, windPlan, n)
+def diagonal(node1, node2, airplane, windPlan):
+    return 0 if node1.id  == node2.id else airplane.fligth(node1.coord, node2.coord, windPlan)[-1]
 
-def convert_into_format(x):
-    heures = x // 3600
-    min = (x - heures * 3600) // 60
-    sec = int(x - heures * 3600 - min * 60)
-    return heures*1e5 + min*1e3 + sec
+# Time string conversions
 
-def astar(dep, arr, alt, time_start, graphe):
+def hms(s):
+    """hms(int) return str
+    return a formatted string HH:MM:SS for the given time step"""
+    return "{:02d}:{:02d}:{:02d}".format(int(s) // 3600, int(s) // 60 % 60, int(s) % 60)
+
+def time(str_hms):
+    """time(str) return int
+    return the time step corresponding to a formatted string HH:MM:SS"""
+    l = str_hms.replace(':', ' ').split()
+    return (int(l[0]) * 3600 + int(l[1]) * 60 + int(l[2]))
+
+def astar(fligth, airplane, wind3D_dict, graphe):
+    """astar(Fligth, Airplane, dict, Graph) return Fligth
+    return fligth en actualisant fligth.duration et fligth.path"""
     openset = set()
     closedset = set()
-    current = dep
-    # Add the starting point to the open set
+    current = fligth.dep
+    # ajouter le noeud initial à openset
     openset.add(current)
-    # While the open set is not empty
+    # tant que openset n'est pas vide
     while openset:
-        # Find the item in the open set with the lowest G + H score
-        current = min(openset, key=lambda node: node.G + node.H)
-        # If it is the item we want, retrace the path and return it
+        # trouver dans openset le noeud avec le plus petit G + H
+        current = min(openset, key = lambda node: node.G + node.H)
         current_id = current.id
-        if  current_id == arr.id:
-            duration = current.G
-            path = []
+        # si le noeud correspond à l'arriver
+        if  current_id == fligth.arr.id:
+            duration = current.G # la durrée du trajet
+            path = [] # initialisation du chemin
+            # remplir path
             while current_id:
                 path.append(current_id)
                 current_id = graphe.nodes_dict[current_id].parent
-            return {duration: path[-1::-1]}
-        # Remove the item from the open set
+            fligth.duration = duration
+            fligth.path = path[-1::-1]
+            return fligth
+        # supprimer le noeud de openset
         openset.remove(current)
-        # Add it to the closed set
+        # ajouter le noeud à closed set
         closedset.add(current)
 
-        time = convert_into_format(time_start + current.G)
-        date = min(DATES, key=lambda x: abs(x - time))
-        wind3D = WIND3D_DICT1[date] if date in WIND3D_DICT1 else WIND3D_DICT2[date]
-        windPlan = wind3D.dict[alt]
+        time = int(hms(fligth.time_start + current.G).replace(':', '')) # temps au moment ou on parcourt le noeud
+        (date, wind3D) = min(wind3D_dict.items(), key=lambda x: abs((x[0]%1e6) - time)) #  pour obtenir le dict des vent à la date la plus proche de time
+        windPlan = wind3D.dict[fligth.alt] # class = WindPlan : permet d'obtenir le dict des vent à la date "date" et à l'altitude "alt"
 
-        # Loop through the node's children/siblings
-        for (id, duration) in current.voisins(windPlan, graphe, 2).items():
+        # parcourir les noeuds voisins
+        for (id, duration) in current.voisins(airplane, windPlan, graphe).items():
             node = graphe.nodes_dict[id]
-            # If it is already in the closed set, skip it
+            # si node est déjà dans closedset
             if node in closedset:
+                # vérifier s'il vaut mieux passer pr current
                 new_g = current.G + duration
                 if node.G > new_g:
-                    # If so, update the node to have a new parent
+                    # si c'est le cas, actualiser le parent de node à current
                     node.G = new_g
                     node.parent = current_id
+                    # remettre node dans openset
                     openset.add(node)
+                    # supprimer node de closedset
                     closedset.remove(node)
-            # Otherwise if it is already in the open set
+            # sinon, si node est déjà dans openset
             elif node in openset:
-                # Check if we beat the G score
+                # vérifier s'il vaut mieux passer pr current
                 new_g = current.G + duration
                 if node.G > new_g:
-                    # If so, update the node to have a new parent
+                    # si c'est le cas, actualiser le parent de node à current
                     node.G = new_g
                     node.parent = current_id
             else:
-                # If it isn't in the open set, calculate the G and H score for the node
+                # sinon, calculer G et H de node
                 node.G = current.G + duration
-                node.H = diagonal(node, arr, windPlan, 7)
-                # Set the parent to our current item
+                node.H = diagonal(node, fligth.arr, airplane, windPlan)
+                # actualiser le parent de node à current
                 node.parent = current_id
-                # Add it to the set
+                # ajouter node à openset
                 openset.add(node)
-    # Throw an exception if there is no path
+    # si l'arriver n'est pas atteint lever l'erreur "ValueError"
     raise ValueError('No Path Found')
