@@ -7,12 +7,12 @@ class Point(object):
     def __init__(self, longitude, latitude):
         self.long = longitude
         self.lat = latitude
-        self.lat_moy = 46*(pi/180)
-        self.rayon_terrestre = 6371000
-        self.long_to_x = self.rayon_terrestre * cos(self.lat_moy) * (pi / 180)
-        self.lat_to_y = self.rayon_terrestre * (pi / 180)
-        self.x = self.long * self.long_to_x
-        self.y = self.lat * self.lat_to_y
+        lat_moy = 46*(pi/180)
+        rayon_terrestre = 6371000
+        long_to_x = rayon_terrestre * cos(lat_moy) * (pi / 180)
+        lat_to_y = rayon_terrestre * (pi / 180)
+        self.x = self.long * long_to_x
+        self.y = self.lat * lat_to_y
 
     def __repr__(self):
         return "({0.long}, {0.lat})".format(self)

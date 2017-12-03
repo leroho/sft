@@ -35,7 +35,7 @@ class Node():
     def voisins(self, airplane, windPlan, graphe):
         for (id, node) in graphe.nodes_dict.items():
             if id != self.id :
-                duration = airplane.fligth(self.coord, node.coord, windPlan)[-1]
+                duration = airplane.trajectory(self.coord, node.coord, windPlan)[-1]
                 if duration <= airplane.X:
                     self.add(node, duration)
         return self.dico #renvoie tous les voisins
@@ -60,7 +60,7 @@ def arbre_creation(filename):
     return graphe
 
 def diagonal(node1, node2, airplane, windPlan):
-    return 0 if node1.id  == node2.id else airplane.fligth(node1.coord, node2.coord, windPlan)[-1]
+    return 0 if node1.id  == node2.id else airplane.trajectory(node1.coord, node2.coord, windPlan)[-1]
 
 # Time string conversions
 

@@ -2,14 +2,12 @@ import arbre_oaci
 import  wind
 import  geometry
 import matplotlib.pyplot as pl
-import weigth
+import airplane
 
 ALTITUDES = [400, 500, 600, 700, 800]
-FILE1 = "Données/bdap2017002362248.txt"
-FILE2 = "Données/bdap2017002362250.txt"
 DEP = "LFBO"#input("aérodrme de départ : ")
 ARR = "LFQQ"#input("aérodrme de d'arriver : ")
-TIME_START = "13:30:00"#input("heure de départ : ")
+TIME_START = "08:30:00"#input("heure de départ : ")
 
 def create_wind3D_dict(file1, file2):
     wind3D_dict = {}
@@ -29,7 +27,7 @@ def find_path(airplaine, wind3D_dict, graphe):
     return min(list, key = lambda x : x.duration)
 
 if __name__ == "__main__":
-    airplaine = weigth.Airplane(400, 800, 20*60, 200)
+    airplaine = airplane.Airplane(400, 800, 20 * 60, 200)
     wind3D_dict = create_wind3D_dict("Données/bdap2017002362248.txt", "Données/bdap2017002362250.txt")
     graphe = arbre_oaci.arbre_creation("Données/aerodrome.txt")
     fligth = find_path(airplaine, wind3D_dict, graphe)
