@@ -40,43 +40,43 @@ class WindPlan(Wind3D):
 
     def get_windLocal(self, coord):
         return self.dict[(coord.long, coord.lat)]
-
-    def windGlobal(self, a, b ):
+    def windGlobal(self, a, b):
         k1 = int(min(a.long, b.long) / 0.5)
         k2 = int(max(a.long, b.long) / 0.5) + 1
         vent = geometry.Vect(0, 0)
         n = 0
         for i in range(k1, k2 + 1):
             x = i * 0.5
-            y = ((b.lat - a.lat) / (b.long - a.long)) * (x - a.long) + a.lat
-            try:
-                vent += (self.dict[(x, int(y / 0.5) * 0.5)].vect)
-                n += 1
-            except KeyError:
-                pass
-            try:
-                vent += (self.dict[(x, int(y / 0.5 + 1) * 0.5)].vect)
-                n += 1
-            except KeyError:
-                pass
+            if  b.long - a.long !=  0:
+                y = (b.lat - a.lat) / (b.long - a.long) * (x - a.long) + a.lat
+                try:
+                    vent += self.dict[(x, int(y / 0.5) * 0.5)].vect
+                    n += 1
+                except KeyError:
+                    pass
+                try:
+                    vent += self.dict[(x, int(y / 0.5 + 1) * 0.5)].vect
+                    n += 1
+                except KeyError:
+                    pass
         if n == 0:
             k1 = int(min(a.lat, b.lat) / 0.5)
             k2 = int(max(a.lat, b.lat) / 0.5) + 1
             vent = geometry.Vect(0, 0)
-            n = 0
             for i in range(k1, k2 + 1):
                 y = i * 0.5
-                x = ((b.long - a.long) / (b.lat - a.lat)) * (y - a.lat) + a.long
-                try:
-                    vent += (self.dict[(int(x / 0.5) * 0.5), y].vect)
-                    n += 1
-                except KeyError:
-                    pass
-                try:
-                    vent += (self.dict[(int(x / 0.5 + 1) * 0.5, x)].vect)
-                    n += 1
-                except KeyError:
-                    pass
+                if b.lat - a.lat != 0:
+                    x = (b.long - a.long) / (b.lat - a.lat) * (y - a.lat) + a.long
+                    try:
+                        vent += self.dict[(int(x / 0.5) * 0.5), y].vect
+                        n += 1
+                    except KeyError:
+                        pass
+                    try:
+                        vent += self.dict[(int(x / 0.5 + 1) * 0.5, x)].vect
+                        n += 1
+                    except KeyError:
+                        pass
         return vent.__rmul__(1 / n)
 
 class WindLocal(WindPlan):

@@ -6,27 +6,48 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>867</width>
-    <height>613</height>
+    <width>925</width>
+    <height>620</height>
    </rect>
   </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="contextMenuPolicy">
+   <enum>Qt::DefaultContextMenu</enum>
+  </property>
   <property name="windowTitle">
-   <string>Form</string>
+   <string>IHM de recherche de trajectoire optimale</string>
+  </property>
+  <property name="windowOpacity">
+   <double>1.000000000000000</double>
+  </property>
+  <property name="autoFillBackground">
+   <bool>false</bool>
+  </property>
+  <property name="styleSheet">
+   <string notr="true"/>
   </property>
   <widget class="QWidget" name="horizontalLayoutWidget">
    <property name="geometry">
     <rect>
-     <x>20</x>
+     <x>10</x>
      <y>10</y>
-     <width>866</width>
+     <width>451</width>
      <height>602</height>
     </rect>
    </property>
-   <layout class="QHBoxLayout" name="hor_global">
+   <layout class="QHBoxLayout" name="hor_global" stretch="0,0">
+    <property name="sizeConstraint">
+     <enum>QLayout::SetMinimumSize</enum>
+    </property>
     <item>
      <layout class="QVBoxLayout" name="verticalLayout">
       <property name="sizeConstraint">
-       <enum>QLayout::SetMaximumSize</enum>
+       <enum>QLayout::SetDefaultConstraint</enum>
       </property>
       <property name="rightMargin">
        <number>0</number>
@@ -41,13 +62,19 @@
         </property>
         <item>
          <widget class="QLabel" name="label">
+          <property name="styleSheet">
+           <string notr="true"/>
+          </property>
           <property name="text">
            <string>Aerodrome de départ</string>
+          </property>
+          <property name="wordWrap">
+           <bool>false</bool>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QLineEdit" name="lineEdit">
+         <widget class="QComboBox" name="comboBox_depart">
           <property name="minimumSize">
            <size>
             <width>120</width>
@@ -60,9 +87,14 @@
             <height>16777215</height>
            </size>
           </property>
-          <property name="text">
-           <string>LFBO</string>
+          <property name="editable">
+           <bool>true</bool>
           </property>
+          <item>
+           <property name="text">
+            <string>LFBA</string>
+           </property>
+          </item>
          </widget>
         </item>
        </layout>
@@ -71,13 +103,16 @@
        <layout class="QHBoxLayout" name="arr">
         <item>
          <widget class="QLabel" name="label_2">
+          <property name="styleSheet">
+           <string notr="true"/>
+          </property>
           <property name="text">
            <string>Aerodrome d'arrivé</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QLineEdit" name="lineEdit_2">
+         <widget class="QComboBox" name="comboBox_arrive">
           <property name="minimumSize">
            <size>
             <width>120</width>
@@ -90,9 +125,14 @@
             <height>16777215</height>
            </size>
           </property>
-          <property name="text">
-           <string>LFQQ</string>
+          <property name="editable">
+           <bool>true</bool>
           </property>
+          <item>
+           <property name="text">
+            <string>LFQQ</string>
+           </property>
+          </item>
          </widget>
         </item>
        </layout>
@@ -101,13 +141,16 @@
        <layout class="QHBoxLayout" name="heure_du_vol">
         <item>
          <widget class="QLabel" name="label_3">
+          <property name="styleSheet">
+           <string notr="true"/>
+          </property>
           <property name="text">
            <string>Heure du vol (hh:mm:ss)</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QLineEdit" name="lineEdit_3">
+         <widget class="QTimeEdit" name="timeEdit">
           <property name="minimumSize">
            <size>
             <width>120</width>
@@ -120,8 +163,11 @@
             <height>16777215</height>
            </size>
           </property>
-          <property name="text">
-           <string>13:30:00</string>
+          <property name="styleSheet">
+           <string notr="true">background-color: rgb(255, 255, 255)</string>
+          </property>
+          <property name="displayFormat">
+           <string>HH:mm:ss</string>
           </property>
          </widget>
         </item>
@@ -134,13 +180,16 @@
         </property>
         <item>
          <widget class="QLabel" name="label_4">
+          <property name="styleSheet">
+           <string notr="true"/>
+          </property>
           <property name="text">
            <string>Vitesse de croisière</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QSpinBox" name="spinBox">
+         <widget class="QSpinBox" name="spinBox_vitesse">
           <property name="minimumSize">
            <size>
             <width>120</width>
@@ -152,6 +201,9 @@
             <width>120</width>
             <height>16777215</height>
            </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">background-color: rgb(255, 255, 255);</string>
           </property>
           <property name="maximum">
            <number>400</number>
@@ -170,13 +222,16 @@
         </property>
         <item>
          <widget class="QLabel" name="label_5">
+          <property name="styleSheet">
+           <string notr="true"/>
+          </property>
           <property name="text">
            <string>Altitude minimale (hPa)</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QSpinBox" name="spinBox_2">
+         <widget class="QSpinBox" name="spinBox_altinf">
           <property name="minimumSize">
            <size>
             <width>120</width>
@@ -188,6 +243,9 @@
             <width>120</width>
             <height>16777215</height>
            </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">background-color: rgb(255, 255, 255);</string>
           </property>
           <property name="minimum">
            <number>400</number>
@@ -209,13 +267,16 @@
         </property>
         <item>
          <widget class="QLabel" name="label_6">
+          <property name="styleSheet">
+           <string notr="true"/>
+          </property>
           <property name="text">
            <string>Altitude maximale (hPa)</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QSpinBox" name="spinBox_3">
+         <widget class="QSpinBox" name="spinBox_altsup">
           <property name="minimumSize">
            <size>
             <width>120</width>
@@ -227,6 +288,9 @@
             <width>120</width>
             <height>16777215</height>
            </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">background-color: rgb(255, 255, 255);</string>
           </property>
           <property name="minimum">
            <number>400</number>
@@ -247,17 +311,20 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_3">
         <property name="bottomMargin">
-         <number>10</number>
+         <number>0</number>
         </property>
         <item>
          <widget class="QLabel" name="label_7">
+          <property name="styleSheet">
+           <string notr="true"/>
+          </property>
           <property name="text">
            <string>Temps d'arrêt (min)</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QSpinBox" name="spinBox_4">
+         <widget class="QSpinBox" name="spinBox_tempsdarret">
           <property name="minimumSize">
            <size>
             <width>120</width>
@@ -269,6 +336,9 @@
             <width>120</width>
             <height>16777215</height>
            </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true"/>
           </property>
           <property name="maximum">
            <number>600</number>
@@ -283,15 +353,33 @@
       <item>
        <layout class="QHBoxLayout" name="recherche">
         <property name="topMargin">
-         <number>50</number>
+         <number>20</number>
         </property>
         <property name="bottomMargin">
-         <number>0</number>
+         <number>20</number>
         </property>
         <item>
-         <widget class="QPushButton" name="pushButton">
+         <widget class="QPushButton" name="pushButton_recherche">
+          <property name="maximumSize">
+           <size>
+            <width>100</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true"/>
+          </property>
           <property name="text">
            <string>Recherche</string>
+          </property>
+          <property name="autoDefault">
+           <bool>false</bool>
+          </property>
+          <property name="default">
+           <bool>false</bool>
+          </property>
+          <property name="flat">
+           <bool>false</bool>
           </property>
          </widget>
         </item>
@@ -300,31 +388,36 @@
       <item>
        <layout class="QHBoxLayout" name="text_browser">
         <item>
-         <widget class="QListWidget" name="listWidget"/>
+         <widget class="QListWidget" name="listWidget">
+          <property name="minimumSize">
+           <size>
+            <width>300</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true"/>
+          </property>
+          <property name="sizeAdjustPolicy">
+           <enum>QAbstractScrollArea::AdjustToContents</enum>
+          </property>
+         </widget>
         </item>
        </layout>
       </item>
      </layout>
     </item>
-    <item alignment="Qt::AlignLeft">
-     <widget class="QGraphicsView" name="graphicsView">
-      <property name="enabled">
-       <bool>true</bool>
+    <item>
+     <layout class="QVBoxLayout" name="verticalLayout_radar">
+      <property name="sizeConstraint">
+       <enum>QLayout::SetMinimumSize</enum>
       </property>
-      <property name="minimumSize">
-       <size>
-        <width>600</width>
-        <height>600</height>
-       </size>
+      <property name="leftMargin">
+       <number>0</number>
       </property>
-      <property name="sizeAdjustPolicy">
-       <enum>QAbstractScrollArea::AdjustToContents</enum>
-      </property>
-     </widget>
+     </layout>
     </item>
    </layout>
-   <zorder>verticalLayoutWidget</zorder>
-   <zorder>graphicsView</zorder>
   </widget>
  </widget>
  <resources/>

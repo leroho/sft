@@ -24,21 +24,16 @@ class Node():
         self.parent = None
         self.H = 0
         self.G = 0
-    def add(self, voisin, poids):
-        self.dico[voisin.id] = poids #ajouter un voisin avec son poids
-    def remove(self,oaci_voisin):
-        self.dico.pop(oaci_voisin) #supprimer un voisin
     def __repr__(self):
         return "<Node {0.id}: {0.coord}>".format(self)
-    def dans_dico(self,oaci_test):
-        return oaci_test in self.dico #vérification apartennance aux voisins
-    def voisins(self, airplane, windPlan, graphe):
+    def voisins(self, airplane, windPlan, graphe, with_wind):
+        dico = {}
         for (id, node) in graphe.nodes_dict.items():
             if id != self.id :
-                duration = airplane.trajectory(self.coord, node.coord, windPlan)[-1]
+                duration = airplane.trajectory(self.coord, node.coord, windPlan, with_wind)
                 if duration <= airplane.X:
-                    self.add(node, duration)
-        return self.dico #renvoie tous les voisins
+                    dico[id] = duration
+        return dico #renvoie tous les voisins
 
 class Fligth():
     def __init__(self, dep, arr, alt, time_start):
@@ -59,8 +54,8 @@ def arbre_creation(filename):
         graphe.add(node)
     return graphe
 
-def diagonal(node1, node2, airplane, windPlan):
-    return 0 if node1.id  == node2.id else airplane.trajectory(node1.coord, node2.coord, windPlan)[-1]
+def diagonal(node1, node2, airplane, windPlan, with_wind):
+    return 0 if node1.id == node2.id else airplane.trajectory(node1.coord, node2.coord, windPlan, with_wind)
 
 # Time string conversions
 
@@ -75,7 +70,7 @@ def time(str_hms):
     l = str_hms.replace(':', ' ').split()
     return (int(l[0]) * 3600 + int(l[1]) * 60 + int(l[2]))
 
-def astar(fligth, airplane, wind3D_dict, graphe):
+def astar(fligth, airplane, wind3D_dict, graphe, with_wind):
     """astar(Fligth, Airplane, dict, Graph) return Fligth
     return fligth en actualisant fligth.duration et fligth.path"""
     openset = set()
@@ -89,7 +84,7 @@ def astar(fligth, airplane, wind3D_dict, graphe):
         current = min(openset, key = lambda node: node.G + node.H)
         current_id = current.id
         # si le noeud correspond à l'arriver
-        if  current_id == fligth.arr.id:
+        if current_id == fligth.arr.id:
             duration = current.G # la durrée du trajet
             path = [] # initialisation du chemin
             # remplir path
@@ -109,7 +104,7 @@ def astar(fligth, airplane, wind3D_dict, graphe):
         windPlan = wind3D.dict[fligth.alt] # class = WindPlan : permet d'obtenir le dict des vent à la date "date" et à l'altitude "alt"
 
         # parcourir les noeuds voisins
-        for (id, duration) in current.voisins(airplane, windPlan, graphe).items():
+        for (id, duration) in current.voisins(airplane, windPlan, graphe, with_wind).items():
             node = graphe.nodes_dict[id]
             # si node est déjà dans closedset
             if node in closedset:
@@ -134,7 +129,7 @@ def astar(fligth, airplane, wind3D_dict, graphe):
             else:
                 # sinon, calculer G et H de node
                 node.G = current.G + duration
-                node.H = diagonal(node, fligth.arr, airplane, windPlan)
+                node.H = diagonal(node, fligth.arr, airplane, windPlan, with_wind)
                 # actualiser le parent de node à current
                 node.parent = current_id
                 # ajouter node à openset
