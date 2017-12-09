@@ -1,6 +1,7 @@
 import geometry
 import numpy as np
 
+
 class Wind3D:
     """Description du vent global à une date donnée (ensemble des vents locaux sur l'ensemble des altitudes),
     avec les attributs suivants:
@@ -40,6 +41,7 @@ class WindPlan(Wind3D):
 
     def get_windLocal(self, coord):
         return self.dict[(coord.long, coord.lat)]
+
     def windGlobal(self, a, b):
         k1 = int(min(a.long, b.long) / 0.5)
         k2 = int(max(a.long, b.long) / 0.5) + 1
@@ -47,7 +49,7 @@ class WindPlan(Wind3D):
         n = 0
         for i in range(k1, k2 + 1):
             x = i * 0.5
-            if  b.long - a.long !=  0:
+            if b.long - a.long != 0:
                 y = (b.lat - a.lat) / (b.long - a.long) * (x - a.long) + a.lat
                 try:
                     vent += self.dict[(x, int(y / 0.5) * 0.5)].vect
@@ -78,6 +80,7 @@ class WindPlan(Wind3D):
                     except KeyError:
                         pass
         return vent.__rmul__(1 / n)
+
 
 class WindLocal(WindPlan):
     """Description du vent local (mesure point), avec les attributs suivants:
@@ -140,8 +143,8 @@ def from_file(filename):
                     windPlan = WindPlan(alt, date)
                     wind3D.add_windPlan(windPlan)
         if words[0] == 'LONGITUDE':
-            long = int(words[1])/1000
-            lat = int(words[3])/1000
+            long = int(words[1]) / 1000
+            lat = int(words[3]) / 1000
             val = float(words[5])
             coord = geometry.Point(long, lat)
             wind3D = wind3D_dict[date]
@@ -154,6 +157,7 @@ def from_file(filename):
                 windPlan.get_windLocal(coord).add_valToVect(val, param)
     file.close()
     return wind3D_dict
+
 
 if __name__ == '__main__':
     print(from_file("Données/bdap2017002362248.txt"))

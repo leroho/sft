@@ -6,7 +6,7 @@ APT_FILE = 'DATA/aerodrome.txt'
 class Airport:
     """Description d'un aérodrome, avec les attributs suivants:
     - oaci: str (code OACI des aérodromes)
-    - coord: Point tuple (coordonnées géographiques des aérodromes)"""
+    - coord_geo: Point tuple (coordonnées géographiques des aérodromes)"""
 
     def __init__(self, oaci, coord):
         self.oaci = oaci

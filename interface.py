@@ -6,7 +6,10 @@ from ui_interface import Ui_Interface
 from PyQt5 import QtCore, QtGui, QtWidgets
 import math
 
-ALTITUDES = [400, 500, 600, 700, 800]
+WIND_PATH1 = "Données/bdap2017002362248.txt"
+WIND_PATH2 = "Données/bdap2017002362250.txt"
+AERODROMES_PATH = "Données/aerodrome.txt"
+
 
 def create_wind3D_dict(file1, file2):
     wind3D_dict = {}
@@ -16,15 +19,17 @@ def create_wind3D_dict(file1, file2):
         wind3D_dict[date] = wind3D
     return wind3D_dict
 
-def find_path(dep, arr, timeStart, airplaine, wind3D_dict, graphe, with_wind):
+
+def find_path(dep, arr, timeStart, airplane, wind3D_dict, graphe, with_wind):
     if with_wind:
         dico = {}
-        for alt in ALTITUDES:
-            flight = arbre_oaci.Fligth(dep, arr, alt, arbre_oaci.time(timeStart))
-            dico[alt] = arbre_oaci.astar(flight, airplaine, wind3D_dict, graphe, with_wind)
+        for alt in range(airplane.alt_inf, airplane.alt_sup + 100, 100):
+            flight = arbre_oaci.Flight(dep, arr, alt, arbre_oaci.time(timeStart))
+            dico[alt] = arbre_oaci.astar(flight, airplane, wind3D_dict, graphe, with_wind)
         return min(dico.values(), key=lambda x: x.duration)
-    flight = arbre_oaci.Fligth(dep, arr, ALTITUDES[0], arbre_oaci.time(timeStart))
-    return arbre_oaci.astar(flight, airplaine, wind3D_dict, graphe, with_wind)
+    flight = arbre_oaci.Flight(dep, arr, airplane.alt_inf, arbre_oaci.time(timeStart))
+    return arbre_oaci.astar(flight, airplane, wind3D_dict, graphe, with_wind)
+
 
 class PanZoomView(QtWidgets.QGraphicsView):
     """An interactive view that supports Pan and Zoom functions"""
@@ -47,6 +52,7 @@ class PanZoomView(QtWidgets.QGraphicsView):
         self.setTransformationAnchor(self.AnchorUnderMouse)
         super().scale(factor, factor)
 
+
 class IHM(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
@@ -62,43 +68,41 @@ class IHM(QtWidgets.QWidget):
         self.view.raise_()
         self.view.setScene(self.scene)
         self.scene.setBackgroundBrush(QtGui.QBrush(QtGui.QColor("black")))
-        self.default_graph = arbre_oaci.arbre_creation("Données/aerodrome.txt")
-        self.actual_graph = arbre_oaci.arbre_creation("Données/aerodrome.txt")
-        self.wind3D_dict = create_wind3D_dict("Données/bdap2017002362248.txt", "Données/bdap2017002362250.txt")
-        self.aerodromes_dict = geometry.from_file("Données/aerodrome.txt")
-        id_list = [id for id in self.aerodromes_dict]
+        self.graph = arbre_oaci.arbre_creation(AERODROMES_PATH)
+        self.wind3D_dict = create_wind3D_dict(WIND_PATH1, WIND_PATH2)
+        id_list = [id for id in self.graph.nodes_dict]
         self.ui.comboBox_depart.addItems(id_list)
         self.ui.comboBox_arrive.addItems(id_list)
-        self.add_aerodromes()
+        self.add_node()
         self.path_aerodromes = QtWidgets.QGraphicsItemGroup()
         self.ui.pushButton_recherche.clicked.connect(self.search)
 
     def adapt_scale(self, coord):
         pt = geometry.Point(coord.long, coord.lat)
-        pt.x = (pt.x + 400000)*600//1200000
-        pt.y = (5800000 - pt.y)*600//1200000
+        pt.x = (pt.x + 400000) * 600 // 1200000
+        pt.y = (5800000 - pt.y) * 600 // 1200000
         return pt
 
-    def add_aerodromes(self):
-        for id, coord in self.aerodromes_dict.items():
-            point = self.adapt_scale(coord)
+    def add_node(self):
+        for id, node in self.graph.nodes_dict.items():
+            point = self.adapt_scale(node.coord)
             item = QtWidgets.QGraphicsEllipseItem(point.x, point.y, 6, 6)
-            item.setBrush(QtGui.QBrush(QtGui.QColor("#300079")))
+            item.setBrush(QtGui.QBrush(QtGui.QColor("#0000CC")))
             self.scene.addItem(item)
 
     def draw_path(self, path, color, path_width, node_width):
         pen = QtGui.QPen(QtGui.QColor(color), path_width)
         path_graphic = QtGui.QPainterPath()
-        w = node_width/2
-        a = self.adapt_scale(self.aerodromes_dict[path[0]])
+        w = node_width / 2
+        a = self.adapt_scale(self.graph.nodes_dict[path[0]].coord)
         path_graphic.moveTo(a.x + w, a.y + w)
         for k in range(len(path) - 1):
-            b = self.adapt_scale(self.aerodromes_dict[path[k + 1]])
+            b = self.adapt_scale(self.graph.nodes_dict[path[k + 1]].coord)
             path_graphic.lineTo(b.x + w, b.y + w)
         item = QtWidgets.QGraphicsPathItem(path_graphic, self.path_aerodromes)
         item.setPen(pen)
         for id in path:
-            b = self.adapt_scale(self.aerodromes_dict[id])
+            b = self.adapt_scale(self.graph.nodes_dict[id].coord)
             item2 = QtWidgets.QGraphicsEllipseItem(b.x, b.y, node_width, node_width, self.path_aerodromes)
             item2.setBrush(QtGui.QBrush(QtGui.QColor("#00FFEF")))
         self.scene.addItem(self.path_aerodromes)
@@ -112,18 +116,20 @@ class IHM(QtWidgets.QWidget):
         self.path_aerodromes = QtWidgets.QGraphicsItemGroup()
         while range(self.ui.listWidget.count()):
             self.ui.listWidget.takeItem(0)
-        try :
-            self.dep = self.actual_graph.nodes_dict[self.ui.comboBox_depart.currentText()]
-            self.arr = self.actual_graph.nodes_dict[self.ui.comboBox_arrive.currentText()]
+        try:
+            self.dep = self.graph.nodes_dict[self.ui.comboBox_depart.currentText()]
+            self.arr = self.graph.nodes_dict[self.ui.comboBox_arrive.currentText()]
             self.timeStart = self.ui.timeEdit.text()
             self.v_c = self.ui.spinBox_vitesse.value()
             self.alt_inf = self.ui.spinBox_altinf.value()
             self.alt_sup = self.ui.spinBox_altsup.value()
-            self.temps_arret = self.ui.spinBox_tempsdarret.value()*60
+            self.temps_arret = self.ui.spinBox_tempsdarret.value() * 60
             self.airplane = airplane.Airplane(self.alt_inf, self.alt_sup, self.temps_arret, self.v_c)
-            self.flight1 = find_path(self.dep, self.arr, self.timeStart, self.airplane, self.wind3D_dict, self.actual_graph, True)
-            self.reinitialize(self.actual_graph)
-            self.flight2 = find_path(self.dep, self.arr, self.timeStart, self.airplane, self.wind3D_dict, self.actual_graph, False)
+            self.flight1 = find_path(self.dep, self.arr, self.timeStart, self.airplane, self.wind3D_dict, self.graph,
+                                     True)
+            self.reinitialize(self.graph)
+            self.flight2 = find_path(self.dep, self.arr, self.timeStart, self.airplane, self.wind3D_dict, self.graph,
+                                     False)
             self.draw_path(self.flight2.path, "#BF22B4", 2, 6)
             self.draw_path(self.flight1.path, "#00FF22", 3, 8)
             self.ui.listWidget.addItem(str(self.flight1.path))
