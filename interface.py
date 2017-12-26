@@ -1,34 +1,146 @@
 import arbre_oaci
 import wind
 import geometry
-import airplane
+import py_airplane
 from ui_interface import Ui_Interface
 from PyQt5 import QtCore, QtGui, QtWidgets
 import math
+import numpy as np
 
-WIND_PATH1 = "Données/bdap2017002362248.txt"
-WIND_PATH2 = "Données/bdap2017002362250.txt"
-AERODROMES_PATH = "Données/aerodrome.txt"
+ERROR_1 = "fichier incorect. Veillez selectionner à nouveau"
+ERROR_2 = "Pas de chemin trouvé. Essayez de modifier les entrées"
+ERROR_3 = "Une erreur est survenue. Vérifiez les données entrées"
 
 
-def create_wind3D_dict(file1, file2):
+def create_wind3D_dict(files):
     wind3D_dict = {}
-    for (date, wind3D) in wind.from_file(file1).items():
-        wind3D_dict[date] = wind3D
-    for (date, wind3D) in wind.from_file(file2).items():
-        wind3D_dict[date] = wind3D
+    for file in files:
+        for (date, wind3D) in wind.from_file(file).items():
+            wind3D_dict[date] = wind3D
     return wind3D_dict
 
 
 def find_path(dep, arr, timeStart, airplane, wind3D_dict, graphe, with_wind):
     if with_wind:
         dico = {}
-        for alt in range(airplane.alt_inf, airplane.alt_sup + 100, 100):
-            flight = arbre_oaci.Flight(dep, arr, alt, arbre_oaci.time(timeStart))
-            dico[alt] = arbre_oaci.astar(flight, airplane, wind3D_dict, graphe, with_wind)
+        for pression in range(airplane.pression_inf, airplane.pression_sup + 100, 100):
+            flight = arbre_oaci.Flight(dep, arr, pression, arbre_oaci.time(timeStart))
+            dico[pression] = arbre_oaci.astar(flight, airplane, wind3D_dict, graphe, with_wind)
         return min(dico.values(), key=lambda x: x.duration)
-    flight = arbre_oaci.Flight(dep, arr, airplane.alt_inf, arbre_oaci.time(timeStart))
+    flight = arbre_oaci.Flight(dep, arr, airplane.pression_inf, arbre_oaci.time(timeStart))
     return arbre_oaci.astar(flight, airplane, wind3D_dict, graphe, with_wind)
+
+
+def get_direction(a, b):
+    ab = b - a
+    if abs(ab.x) - abs(ab.y) > 0:
+        return 4 if ab.x > 0 else 0
+    elif abs(ab.x) == abs(ab.y) == 0:
+        return 8
+    else:
+        return 2 if ab.y > 0 else 6
+
+
+class ErrorWidget(QtWidgets.QDialog):
+    def __init__(self, ihm, mes):
+        super().__init__(ihm)
+        self.vlayout = QtWidgets.QVBoxLayout(self)
+        self.setWindowTitle("Message d'erreur")
+        message = QtWidgets.QLabel()
+        message.setText(mes)
+        button = QtWidgets.QPushButton("OK")
+        button.setMaximumSize(100, 20)
+        button.clicked.connect(self.close)
+        self.vlayout.addWidget(message)
+        self.vlayout.addWidget(button, alignment=QtCore.Qt.AlignRight)
+        self.show()
+
+
+class RoseDesVent(QtWidgets.QGraphicsItemGroup):
+    def __init__(self, p0=np.array([50, 550])):
+        super().__init__()
+        self.p0 = p0
+        self.roseItem = QtWidgets.QGraphicsPathItem()
+        self.dirItem = QtWidgets.QGraphicsPathItem()
+
+        def produit(x, A):
+            n = len(x)
+            y = np.zeros(n)
+            for j in range(n):
+                yj = 0
+                for i in range(n):
+                    yj += x[i] * A[i][j]
+                y[j] = yj
+            return y
+
+        A = np.array([[0, 1], [-1, 0]])
+        po = np.array([-40, 0])
+        pno = np.array([-5, -5])
+        self.l = [po, pno]
+        for i in range(3):
+            po = produit(po, A)
+            self.l.append(po)
+            pno = produit(pno, A)
+            self.l.append(pno)
+
+    def draw(self, s=8):
+        painter = QtGui.QPainterPath()
+        if s == 8:
+            painter.moveTo((self.l[0] + self.p0)[0], (self.l[0] + self.p0)[1])
+            pen = QtGui.QPen(QtGui.QColor("grey"), 2)
+            for i in range(1, len(self.l)):
+                painter.lineTo((self.l[i] + self.p0)[0], (self.l[i] + self.p0)[1])
+            painter.lineTo((self.l[0] + self.p0)[0], (self.l[0] + self.p0)[1])
+            painter.moveTo((self.l[1] + self.p0)[0], (self.l[1] + self.p0)[1])
+            painter.lineTo((self.l[5] + self.p0)[0], (self.l[5] + self.p0)[1])
+            painter.moveTo((self.l[3] + self.p0)[0], (self.l[3] + self.p0)[1])
+            painter.lineTo((self.l[7] + self.p0)[0], (self.l[7] + self.p0)[1])
+            self.roseItem = QtWidgets.QGraphicsPathItem(painter, self)
+            self.roseItem.setPen(pen)
+        else:
+            self.removeFromGroup(self.dirItem)
+            pen = QtGui.QPen(QtGui.QColor("#00FF22"), 4)
+            painter.moveTo(self.p0[0], self.p0[1])
+            for i in range(-1, 2):
+                painter.lineTo((self.l[s + i] + self.p0)[0], (self.l[s + i] + self.p0)[1])
+            painter.lineTo(self.p0[0], self.p0[1])
+            self.dirItem = QtWidgets.QGraphicsPathItem(painter, self)
+            self.dirItem.setPen(pen)
+
+
+class NodeItems(QtWidgets.QGraphicsItemGroup):
+    def __init__(self, ihm, node):
+        super().__init__()
+        self.ihm = ihm
+        self.node = node
+        a = self.node.coord.adapt_scale()
+        self.nodeItem = QtWidgets.QGraphicsEllipseItem(a.x, a.y, 6, 6, self)
+        self.nodeItem.setBrush(QtGui.QBrush(QtGui.QColor("#0000CC")))
+        self.nodeItem.setToolTip(self.node.id)
+
+
+class Windlocal_Item(QtWidgets.QGraphicsItemGroup):
+    def __init__(self, ihm, windlocal):
+        super().__init__()
+        self.ihm = ihm
+        self.windlocal = windlocal
+        pen = QtGui.QPen(QtGui.QColor("#003366"), 1)
+        vectPainter = QtGui.QPainterPath()
+        p1, p2, p3, p4 = self.windlocal.arrow_repr()
+        vectPainter.addEllipse(p1[0], p1[1], 2, 2)
+        vectPainter.moveTo(p1[0] + 1, p1[1] + 1)
+        vectPainter.lineTo(p2[0] + 1, p2[1] + 1)
+        self.vectItem = QtWidgets.QGraphicsPathItem(vectPainter, self)
+        self.vectItem.setPen(pen)
+
+
+class WindPlan_Item(QtWidgets.QGraphicsItemGroup):
+    def __init__(self, ihm, windPlan):
+        super().__init__()
+        self.ihm = ihm
+        self.windPlan = windPlan
+        for wind in self.windPlan.dict.values():
+            self.addToGroup(Windlocal_Item(self.ihm, wind))
 
 
 class PanZoomView(QtWidgets.QGraphicsView):
@@ -39,7 +151,7 @@ class PanZoomView(QtWidgets.QGraphicsView):
         # enable anti-aliasing
         self.setRenderHint(QtGui.QPainter.Antialiasing)
         # enable drag and drop of the view
-        self.setDragMode(self.ScrollHandDrag)
+        # self.setDragMode(self.ScrollHandDrag)
 
     def wheelEvent(self, event):
         """Overrides method in QGraphicsView in order to zoom it when mouse scroll occurs"""
@@ -68,74 +180,129 @@ class IHM(QtWidgets.QWidget):
         self.view.raise_()
         self.view.setScene(self.scene)
         self.scene.setBackgroundBrush(QtGui.QBrush(QtGui.QColor("black")))
-        self.graph = arbre_oaci.arbre_creation(AERODROMES_PATH)
-        self.wind3D_dict = create_wind3D_dict(WIND_PATH1, WIND_PATH2)
-        id_list = [id for id in self.graph.nodes_dict]
-        self.ui.comboBox_depart.addItems(id_list)
-        self.ui.comboBox_arrive.addItems(id_list)
-        self.add_node()
-        self.path_aerodromes = QtWidgets.QGraphicsItemGroup()
+        self.path_Group = QtWidgets.QGraphicsItemGroup()
+        self.nodes_Group = QtWidgets.QGraphicsItemGroup()
+        self.windPlanItem = None
+        self.rose = RoseDesVent()
+        self.scene.addItem(self.rose)
+
+        self.ui.pushButton_a.clicked.connect(self.load_nodes)
+        self.ui.pushButton_v.clicked.connect(self.load_winds)
         self.ui.pushButton_recherche.clicked.connect(self.search)
+        self.ui.pushButton_save.clicked.connect(self.save_data)
 
-    def adapt_scale(self, coord):
-        pt = geometry.Point(coord.long, coord.lat)
-        pt.x = (pt.x + 400000) * 600 // 1200000
-        pt.y = (5800000 - pt.y) * 600 // 1200000
-        return pt
+    def load_nodes(self):
+        options = QtWidgets.QFileDialog.Options()
+        filename, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Charger les aérodromes", "", "Text Files (*.txt)",
+                                                            options=options)
+        if filename:
+            try:
+                self.graph = arbre_oaci.arbre_creation(filename)
+                self.add_nodes()
+            except Exception:
+                error_windows = ErrorWidget(self, ERROR_1)
 
-    def add_node(self):
+    def add_nodes(self):
+        self.scene.removeItem(self.nodes_Group)
+        self.nodes_Group = QtWidgets.QGraphicsItemGroup()
         for id, node in self.graph.nodes_dict.items():
-            point = self.adapt_scale(node.coord)
-            item = QtWidgets.QGraphicsEllipseItem(point.x, point.y, 6, 6)
-            item.setBrush(QtGui.QBrush(QtGui.QColor("#0000CC")))
-            self.scene.addItem(item)
+            self.ui.comboBox_depart.addItem(id)
+            self.ui.comboBox_arrive.addItem(id)
+            item = NodeItems(self, node)
+            self.nodes_Group.addToGroup(item)
+            self.scene.addItem(self.nodes_Group)
+        self.rose.draw()
 
-    def draw_path(self, path, color, path_width, node_width):
+    def load_winds(self):
+        options = QtWidgets.QFileDialog.Options()
+        files, _ = QtWidgets.QFileDialog.getOpenFileNames(self, "Charger les aérodromes", "", "Text Files (*.txt)",
+                                                          options=options)
+        if files:
+            try:
+                self.wind3D_dict = create_wind3D_dict(files)
+                self.add_windPlan(self.wind3D_dict[20171104060000].dict[400])
+            except Exception:
+                error_windows = ErrorWidget(self, ERROR_1)
+
+    def add_windPlan(self, windPlan):
+        if self.windPlanItem:
+            self.scene.removeItem(self.windPlanItem)
+        self.windPlanItem = WindPlan_Item(self, windPlan)
+        self.scene.addItem(self.windPlanItem)
+
+    def draw_path(self, flight, color, path_width, node_width):
         pen = QtGui.QPen(QtGui.QColor(color), path_width)
-        path_graphic = QtGui.QPainterPath()
+        painter = QtGui.QPainterPath()
         w = node_width / 2
-        a = self.adapt_scale(self.graph.nodes_dict[path[0]].coord)
-        path_graphic.moveTo(a.x + w, a.y + w)
-        for k in range(len(path) - 1):
-            b = self.adapt_scale(self.graph.nodes_dict[path[k + 1]].coord)
-            path_graphic.lineTo(b.x + w, b.y + w)
-        item = QtWidgets.QGraphicsPathItem(path_graphic, self.path_aerodromes)
+        a = flight.dep.coord.adapt_scale()
+        painter.moveTo(a.x + w, a.y + w)
+        for k in range(len(flight.path) - 1):
+            b = self.graph.nodes_dict[flight.path[k + 1]].coord.adapt_scale()
+            painter.lineTo(b.x + w, b.y + w)
+        item = QtWidgets.QGraphicsPathItem(painter, self.path_Group)
         item.setPen(pen)
-        for id in path:
-            b = self.adapt_scale(self.graph.nodes_dict[id].coord)
-            item2 = QtWidgets.QGraphicsEllipseItem(b.x, b.y, node_width, node_width, self.path_aerodromes)
+        item.setToolTip("Trajectoire avec vent") if node_width >= 8 else item.setToolTip("Trajectoire sans vent")
+        for id in flight.path:
+            b = self.graph.nodes_dict[id].coord.adapt_scale()
+            item2 = QtWidgets.QGraphicsEllipseItem(b.x, b.y, node_width, node_width, self.path_Group)
             item2.setBrush(QtGui.QBrush(QtGui.QColor("#00FFEF")))
-        self.scene.addItem(self.path_aerodromes)
+            item2.setToolTip(id)
+        self.scene.addItem(self.path_Group)
+        self.rose.draw(get_direction(flight.dep.coord, flight.arr.coord))
 
     def reinitialize(self, graph):
         for (id, node) in graph.nodes_dict.items():
             node.parent, node.H, node.G = None, 0, 0
 
     def search(self):
-        self.scene.removeItem(self.path_aerodromes)
-        self.path_aerodromes = QtWidgets.QGraphicsItemGroup()
+        self.scene.removeItem(self.path_Group)
+        self.path_Group = QtWidgets.QGraphicsItemGroup()
         while range(self.ui.listWidget.count()):
             self.ui.listWidget.takeItem(0)
         try:
-            self.dep = self.graph.nodes_dict[self.ui.comboBox_depart.currentText()]
-            self.arr = self.graph.nodes_dict[self.ui.comboBox_arrive.currentText()]
-            self.timeStart = self.ui.timeEdit.text()
-            self.v_c = self.ui.spinBox_vitesse.value()
-            self.alt_inf = self.ui.spinBox_altinf.value()
-            self.alt_sup = self.ui.spinBox_altsup.value()
-            self.temps_arret = self.ui.spinBox_tempsdarret.value() * 60
-            self.airplane = airplane.Airplane(self.alt_inf, self.alt_sup, self.temps_arret, self.v_c)
-            self.flight1 = find_path(self.dep, self.arr, self.timeStart, self.airplane, self.wind3D_dict, self.graph,
-                                     True)
+            dep = self.graph.nodes_dict[self.ui.comboBox_depart.currentText()]
+            arr = self.graph.nodes_dict[self.ui.comboBox_arrive.currentText()]
+            timeStart = self.ui.timeEdit.text()
+            v_c = self.ui.spinBox_vitesse.value()
+            pression_inf = self.ui.spinBox_pression_inf.value()
+            pression_sup = self.ui.spinBox_pression_sup.value()
+            temps_arret = self.ui.spinBox_tempsdarret.value() * 60
+            airplane = py_airplane.Airplane(pression_inf, pression_sup, temps_arret, v_c)
+            self.flight1 = find_path(dep, arr, timeStart, airplane, self.wind3D_dict, self.graph, True)
             self.reinitialize(self.graph)
-            self.flight2 = find_path(self.dep, self.arr, self.timeStart, self.airplane, self.wind3D_dict, self.graph,
-                                     False)
-            self.draw_path(self.flight2.path, "#BF22B4", 2, 6)
-            self.draw_path(self.flight1.path, "#00FF22", 3, 8)
-            self.ui.listWidget.addItem(str(self.flight1.path))
-            self.ui.listWidget.addItem("durrée minimale = " + str(arbre_oaci.hms(self.flight1.duration)))
-            self.ui.listWidget.addItem("altitude optimale = " + str(self.flight1.alt) + " hPa")
-            self.ui.listWidget.addItem("durrée sans vent = " + str(arbre_oaci.hms(self.flight2.duration)))
+            flight2 = find_path(dep, arr, timeStart, airplane, self.wind3D_dict, self.graph, False)
+            self.draw_path(flight2, "#BF22B4", 2, 6)
+            self.draw_path(self.flight1, "#00FF22", 3, 8)
+            self.ui.listWidget.addItem("chemin avec vent : " + str(self.flight1.path))
+            self.ui.listWidget.addItem("durée minimale = " + str(arbre_oaci.hms(self.flight1.duration)))
+            self.ui.listWidget.addItem("pression optimale = " + str(self.flight1.pression) + " hPa")
+            self.ui.listWidget.addItem("durée sans vent = " + str(arbre_oaci.hms(flight2.duration)))
+            self.ui.pushButton_save.setEnabled(True)
+        except arbre_oaci.NoPathError:
+            error_window = ErrorWidget(self, ERROR_2)
+        except Exception:
+            error_window = ErrorWidget(self, ERROR_3)
 
-        except ValueError:
-            return "no path found"
+    def load_saveFile(self):
+        options = QtWidgets.QFileDialog.Options()
+        file, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Charger les aérodromes", "", "Text Files (*.txt)",
+                                                        options=options)
+        if file:
+            try:
+                self.wind3D_dict = create_wind3D_dict(file)
+                self.add_windPlan(self.wind3D_dict[20171104060000].dict[400])
+            except Exception:
+                error_windows = ErrorWidget(self, ERROR_1)
+
+    def save_data(self):
+        options = QtWidgets.QFileDialog.Options()
+        file, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Charger les aérodromes", "", "Text Files (*.txt)",
+                                                        options=options)
+        if file:
+            with open(file, "a") as f:
+                f.write("\nDepart            : " + str(self.flight1.dep.id))
+                f.write("\nArrive            : " + str(self.flight1.arr.id))
+                f.write("\nHeure de depart   : " + str(arbre_oaci.hms(self.flight1.time_start)))
+                f.write("\nChemin optimal    : " + str(self.flight1.path))
+                f.write("\nduree minimale    = " + str(self.flight1.duration) + " sec")
+                f.write("\npression optimale = " + str(self.flight1.pression) + " hPa\n")

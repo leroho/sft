@@ -56,6 +56,63 @@
        <number>0</number>
       </property>
       <item>
+       <layout class="QHBoxLayout" name="aerodromes">
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <item>
+         <widget class="QLabel" name="label_8">
+          <property name="text">
+           <string>Fichier des aérodromes</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pushButton_a">
+          <property name="maximumSize">
+           <size>
+            <width>120</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>Parcourir...</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="Vents1">
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
+         <number>10</number>
+        </property>
+        <item>
+         <widget class="QLabel" name="label_9">
+          <property name="text">
+           <string>Fichiers des vents</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pushButton_v">
+          <property name="maximumSize">
+           <size>
+            <width>120</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>Parcourir...</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
        <layout class="QHBoxLayout" name="dep">
         <property name="rightMargin">
          <number>0</number>
@@ -90,11 +147,6 @@
           <property name="editable">
            <bool>true</bool>
           </property>
-          <item>
-           <property name="text">
-            <string>LFBA</string>
-           </property>
-          </item>
          </widget>
         </item>
        </layout>
@@ -128,11 +180,6 @@
           <property name="editable">
            <bool>true</bool>
           </property>
-          <item>
-           <property name="text">
-            <string>LFQQ</string>
-           </property>
-          </item>
          </widget>
         </item>
        </layout>
@@ -226,12 +273,12 @@
            <string notr="true"/>
           </property>
           <property name="text">
-           <string>Altitude minimale (hPa)</string>
+           <string>Pression minimale (hPa)</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QSpinBox" name="spinBox_altinf">
+         <widget class="QSpinBox" name="spinBox_pression_inf">
           <property name="minimumSize">
            <size>
             <width>120</width>
@@ -271,12 +318,12 @@
            <string notr="true"/>
           </property>
           <property name="text">
-           <string>Altitude maximale (hPa)</string>
+           <string>Pression maximale (hPa)</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QSpinBox" name="spinBox_altsup">
+         <widget class="QSpinBox" name="spinBox_pression_sup">
           <property name="minimumSize">
            <size>
             <width>120</width>
@@ -353,12 +400,12 @@
       <item>
        <layout class="QHBoxLayout" name="recherche">
         <property name="topMargin">
-         <number>20</number>
+         <number>10</number>
         </property>
         <property name="bottomMargin">
-         <number>20</number>
+         <number>0</number>
         </property>
-        <item>
+        <item alignment="Qt::AlignRight">
          <widget class="QPushButton" name="pushButton_recherche">
           <property name="maximumSize">
            <size>
@@ -366,11 +413,17 @@
             <height>16777215</height>
            </size>
           </property>
+          <property name="layoutDirection">
+           <enum>Qt::LeftToRight</enum>
+          </property>
+          <property name="autoFillBackground">
+           <bool>false</bool>
+          </property>
           <property name="styleSheet">
            <string notr="true"/>
           </property>
           <property name="text">
-           <string>Recherche</string>
+           <string>Calculer</string>
           </property>
           <property name="autoDefault">
            <bool>false</bool>
@@ -380,6 +433,29 @@
           </property>
           <property name="flat">
            <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QVBoxLayout" name="verticalLayout_save">
+        <property name="topMargin">
+         <number>10</number>
+        </property>
+        <item alignment="Qt::AlignRight">
+         <widget class="QPushButton" name="pushButton_save">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>100</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>save</string>
           </property>
          </widget>
         </item>

@@ -35,6 +35,12 @@ class Point(object):
     def distance(self, other):
         return abs(self - other)
 
+    def adapt_scale(self):
+        pt = Point(self.long, self.lat)
+        pt.x = (pt.x + 400000) * 600 // 1200000
+        pt.y = (5800000 - pt.y) * 600 // 1200000
+        return pt
+
 class Vect():
     def __init__(self, u, v):
         self.u = u

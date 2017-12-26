@@ -50,21 +50,21 @@ class Flight():
     """represente le vol entre 2 aerodromes données
         -dep: Node aerodrome de départ
         -arr: Node aerodrome d'arrivé
-        -alt: int altitude du vol considéré
+        -pression: int pression du vol considéré
         -time_start: float heure de départ en secondes
         -duration: float durée du trajet
         -path: list liste des id des aerodromes suivis"""
 
-    def __init__(self, dep, arr, alt, time_start):
+    def __init__(self, dep, arr, pression, time_start):
         self.dep = dep
         self.arr = arr
-        self.alt = alt
+        self.pression = pression
         self.time_start = time_start
         self.duration = None
         self.path = None
 
     def __repr__(self):
-        return "flight : alt = {0.alt} hPa ; ".format(self) + "duration = " + str(
+        return "flight : pression = {0.pression} hPa ; ".format(self) + "duration = " + str(
             hms(self.duration)) + " ; path = {0.path}".format(self)
 
 
@@ -104,6 +104,12 @@ def time(str_hms):
     return (int(l[0]) * 3600 + int(l[1]) * 60 + int(l[2]))
 
 
+def get_wind3D(wind3D_dict, str_hms):
+    t = int(hms(str_hms).replace(':', ''))
+    (date, wind3D) = min(wind3D_dict.items(), key=lambda x: abs((x[0] % 1e6) - t))
+    return wind3D
+
+
 def astar(flight, airplane, wind3D_dict, graphe, with_wind):
     """astar(Flight, Airplane, dict, Graph) return Flight
     return flight en actualisant flight.duration et flight.path"""
@@ -117,6 +123,7 @@ def astar(flight, airplane, wind3D_dict, graphe, with_wind):
         # trouver dans openset le noeud avec le plus petit G + H
         current = min(openset, key=lambda node: node.G + node.H)
         current_id = current.id
+
         # si le noeud correspond à l'arriver
         if current_id == flight.arr.id:
             duration = current.G  # la durrée du trajet
@@ -132,12 +139,9 @@ def astar(flight, airplane, wind3D_dict, graphe, with_wind):
         openset.remove(current)
         # ajouter le noeud à closed set
         closedset.add(current)
-        # temps au moment ou on parcourt le noeud
-        time = int(hms(flight.time_start + current.G).replace(':', ''))
-        # pour obtenir le dict des vent à la date la plus proche de time
-        (date, wind3D) = min(wind3D_dict.items(), key=lambda x: abs((x[0] % 1e6) - time))
-        # class = WindPlan : permet d'obtenir le dict des vent à la date "date" et à l'altitude "alt"
-        windPlan = wind3D.dict[flight.alt]
+        wind3D = get_wind3D(wind3D_dict, flight.time_start + current.G)
+        # class = WindPlan : permet d'obtenir le dict des vent à la date "date" et à l'pressionitude "pression"
+        windPlan = wind3D.dict[flight.pression]
 
         # parcourir les noeuds voisins
         for (id, duration) in current.voisins(airplane, windPlan, graphe, with_wind).items():
@@ -171,4 +175,6 @@ def astar(flight, airplane, wind3D_dict, graphe, with_wind):
                 # ajouter node à openset
                 openset.add(node)
     # si l'arriver n'est pas atteint lever l'erreur "ValueError"
-    raise ValueError('No Path Found')
+    raise NoPathError
+
+class NoPathError(Exception): pass

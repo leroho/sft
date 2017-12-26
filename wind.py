@@ -1,6 +1,6 @@
 import geometry
 import numpy as np
-
+import matplotlib.pyplot as plt
 
 class Wind3D:
     """Description du vent global à une date donnée (ensemble des vents locaux sur l'ensemble des altitudes),
@@ -108,11 +108,19 @@ class WindLocal(WindPlan):
         self.vect = geometry.Vect(self.u, self.v)
 
     def get_dir(self):
-        return np.degrees(np.arctan2(self.v, self.u))
+        return np.arctan2(self.v, self.u)
 
     def get_speed(self):
-        return np.linalg.norm(self.vect)
+        return abs(self.vect)
 
+    def arrow_repr(self):
+        p1 = int(self.coord.adapt_scale().x), int(self.coord.adapt_scale().y)
+        p2 = int(p1[0] + self.u), int(p1[1] - self.v)
+        alpha = self.get_dir()
+        beta = np.pi/4 - alpha
+        p3 = int(p2[0] - np.sin(beta)*self.get_speed()/5), int(p2[1] + np.cos(beta)*self.get_speed()/4)
+        p4 = int(p2[0] - np.cos(beta)*self.get_speed()/5), int(p2[1] - np.sin(beta)*self.get_speed()/4)
+        return p1, p2, p3, p4
 
 def from_file(filename):
     """from_file(str) return Wind3D : reads a wind map description file"""
@@ -160,4 +168,16 @@ def from_file(filename):
 
 
 if __name__ == '__main__':
-    print(from_file("Données/bdap2017002362248.txt"))
+    wind3D_dict = from_file("Données/bdap2017002362248.txt")
+    wind3D = wind3D_dict[20171104060000]
+    windPlan = wind3D.dict[400]
+    wind = windPlan.dict[(-5, 45)]
+    print(wind)
+    p1, p2, p3, p4 = wind.arrow_repr()
+    print(p1, p2, p3, p4)
+    plt.plot(p1[0], p1[1], 'o')
+    plt.plot(p2[0], p2[1], 'o')
+    plt.plot(p3[0], p3[1], 'o')
+    plt.plot(p4[0], p4[1], 'o')
+    plt.axis('equal')
+    plt.show()
