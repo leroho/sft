@@ -15,7 +15,12 @@ class Graph():
     def __repr__(self):
         return "<Graph {0.nodes_dict}>".format(self)
 
-
+    def dim(self):
+        min_x = min(node.coord.x for node in self.nodes_dict.values())
+        max_x = max(node.coord.x for node in self.nodes_dict.values())
+        min_y = min(node.coord.y for node in self.nodes_dict.values())
+        max_y = max(node.coord.y for node in self.nodes_dict.values())
+        return min_x, max_x, min_y, max_y
 class Node():
     """represente un aedrome dans le graphe
         - id: string code OACI
@@ -104,8 +109,8 @@ def time(str_hms):
     return (int(l[0]) * 3600 + int(l[1]) * 60 + int(l[2]))
 
 
-def get_wind3D(wind3D_dict, str_hms):
-    t = int(hms(str_hms).replace(':', ''))
+def get_wind3D(wind3D_dict, sec):
+    t = int(hms(sec).replace(':', ''))
     (date, wind3D) = min(wind3D_dict.items(), key=lambda x: abs((x[0] % 1e6) - t))
     return wind3D
 

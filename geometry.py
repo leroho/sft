@@ -4,30 +4,46 @@ from numpy import arccos, cos, pi
 class Point(object):
     """Meters coordinates, with attributes long, y: int"""
 
-    def __init__(self, longitude, latitude):
-        self.long = longitude
-        self.lat = latitude
-        lat_moy = 46*(pi/180)
-        rayon_terrestre = 6371000
-        long_to_x = rayon_terrestre * cos(lat_moy) * (pi / 180)
-        lat_to_y = rayon_terrestre * (pi / 180)
-        self.x = self.long * long_to_x
-        self.y = self.lat * lat_to_y
+    def __init__(self, a, b, lat_moy=None):
+        self.lat_moy = lat_moy
+        if lat_moy != None:
+            self.long = a
+            self.lat = b
+            rayon_terrestre = 6371000
+            long_to_x = rayon_terrestre * cos(lat_moy*pi/180) * (pi / 180)
+            lat_to_y = rayon_terrestre * (pi / 180)
+            self.x = self.long * long_to_x
+            self.y = self.lat * lat_to_y
+        else:
+            self.x = a
+            self.y = b
 
     def __repr__(self):
-        return "({0.long}, {0.lat})".format(self)
+        return "({0.long}, {0.lat})".format(self) if self.lat_moy != None else "({0.x}, {0.y})".format(self)
 
     def __eq__(self, other):
-        return self.long == other.long and self.lat == other.lat
+        if self.lat_moy != None:
+            return self.long == other.long and self.lat == other.lat
+        else:
+            return self.x == other.x and self.y == other.y
 
     def __sub__(self, other):
-        return Point(self.long - other.long, self.lat - other.lat)
+        if self.lat_moy != None:
+            return Point(self.long - other.long, self.lat - other.lat, self.lat_moy)
+        else:
+            return Point(self.x - other.x, self.y - other.y)
 
     def __add__(self, other):
-        return Point(self.long + other.long, self.lat + other.lat)
+        if self.lat_moy != None:
+            return Point(self.long + other.long, self.lat + other.lat, self.lat_moy)
+        else:
+            return Point(self.x + other.x, self.y + other.y)
 
     def __rmul__(self, k):
-        return Point(k * self.long, k * self.lat)
+        if self.lat_moy != None:
+            return Point(k * self.long, k * self.lat, self.lat_moy)
+        else:
+            return Point(k * self.x, k * self.y)
 
     def __abs__(self):
         return (self.x ** 2 + self.y ** 2) ** 0.5
@@ -35,11 +51,16 @@ class Point(object):
     def distance(self, other):
         return abs(self - other)
 
-    def adapt_scale(self):
-        pt = Point(self.long, self.lat)
-        pt.x = (pt.x + 400000) * 600 // 1200000
-        pt.y = (5800000 - pt.y) * 600 // 1200000
+    def adapt_scale(self, view_width, liste):
+        min_x, max_x, min_y, max_y = liste
+        width = max_x - min_x
+        height = max_y - min_y
+        view_height = view_width*height/width
+        pt = Point(self.long, self.lat, self.lat_moy)
+        pt.x = (pt.x - min_x) * view_width / width
+        pt.y = (max_y - pt.y) * view_height / height
         return pt
+
 
 class Vect():
     def __init__(self, u, v):
@@ -75,13 +96,22 @@ class Vect():
         return self.u * other.v - self.v * other.u
 
     def angle(self, other):
-        return arccos(self.sca(other)/(abs(self)*abs(other)))
+        return arccos(self.sca(other) / (abs(self) * abs(other)))
+
+def find_lat(file):
+    with open(file, "r") as f:
+        liste = []
+        for line in f:
+            l = line.strip().split()
+            liste.append(float(l[-1]))
+    return (min(liste) + max(liste))/2
 
 def from_file(file):
     dict = {}
+    m = find_lat(file)
     with open(file, "r") as f:
-        for line in f :
+        for line in f:
             l = line.strip().split()
             long, lat = float(l[-2]), float(l[-1])
-            dict[l[1]] = Point(long, lat)
+            dict[l[1]] = Point(long, lat, lat_moy = m)
     return dict

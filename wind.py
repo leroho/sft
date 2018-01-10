@@ -113,16 +113,7 @@ class WindLocal(WindPlan):
     def get_speed(self):
         return abs(self.vect)
 
-    def arrow_repr(self):
-        p1 = int(self.coord.adapt_scale().x), int(self.coord.adapt_scale().y)
-        p2 = int(p1[0] + self.u), int(p1[1] - self.v)
-        alpha = self.get_dir()
-        beta = np.pi/4 - alpha
-        p3 = int(p2[0] - np.sin(beta)*self.get_speed()/5), int(p2[1] + np.cos(beta)*self.get_speed()/4)
-        p4 = int(p2[0] - np.cos(beta)*self.get_speed()/5), int(p2[1] - np.sin(beta)*self.get_speed()/4)
-        return p1, p2, p3, p4
-
-def from_file(filename):
+def from_file(filename, m):
     """from_file(str) return Wind3D : reads a wind map description file"""
     wind3D_dict = {}
     coord = None
@@ -154,7 +145,7 @@ def from_file(filename):
             long = int(words[1]) / 1000
             lat = int(words[3]) / 1000
             val = float(words[5])
-            coord = geometry.Point(long, lat)
+            coord = geometry.Point(long, lat, m)
             wind3D = wind3D_dict[date]
             windPlan = wind3D.get_windPlan(alt)
             if param == 'u':

@@ -1,21 +1,21 @@
 import arbre_oaci
 import wind
-import geometry
+import new_items
 import py_airplane
+import geometry
 from ui_interface import Ui_Interface
 from PyQt5 import QtCore, QtGui, QtWidgets
 import math
-import numpy as np
 
-ERROR_1 = "fichier incorect. Veillez selectionner à nouveau"
-ERROR_2 = "Pas de chemin trouvé. Essayez de modifier les entrées"
+ERROR_1 = "Fichier incorect. Veillez selectionner à nouveau"
+ERROR_2 = "Pas de chemin trouvé. Essayez de modifier les données  entrées"
 ERROR_3 = "Une erreur est survenue. Vérifiez les données entrées"
+VIEW_WIDTH = 600
 
-
-def create_wind3D_dict(files):
+def create_wind3D_dict(files, m):
     wind3D_dict = {}
     for file in files:
-        for (date, wind3D) in wind.from_file(file).items():
+        for (date, wind3D) in wind.from_file(file, m).items():
             wind3D_dict[date] = wind3D
     return wind3D_dict
 
@@ -31,16 +31,6 @@ def find_path(dep, arr, timeStart, airplane, wind3D_dict, graphe, with_wind):
     return arbre_oaci.astar(flight, airplane, wind3D_dict, graphe, with_wind)
 
 
-def get_direction(a, b):
-    ab = b - a
-    if abs(ab.x) - abs(ab.y) > 0:
-        return 4 if ab.x > 0 else 0
-    elif abs(ab.x) == abs(ab.y) == 0:
-        return 8
-    else:
-        return 2 if ab.y > 0 else 6
-
-
 class ErrorWidget(QtWidgets.QDialog):
     def __init__(self, ihm, mes):
         super().__init__(ihm)
@@ -53,101 +43,14 @@ class ErrorWidget(QtWidgets.QDialog):
         button.clicked.connect(self.close)
         self.vlayout.addWidget(message)
         self.vlayout.addWidget(button, alignment=QtCore.Qt.AlignRight)
-        self.show()
-
-
-class RoseDesVent(QtWidgets.QGraphicsItemGroup):
-    def __init__(self, p0=np.array([50, 550])):
-        super().__init__()
-        self.p0 = p0
-        self.roseItem = QtWidgets.QGraphicsPathItem()
-        self.dirItem = QtWidgets.QGraphicsPathItem()
-
-        def produit(x, A):
-            n = len(x)
-            y = np.zeros(n)
-            for j in range(n):
-                yj = 0
-                for i in range(n):
-                    yj += x[i] * A[i][j]
-                y[j] = yj
-            return y
-
-        A = np.array([[0, 1], [-1, 0]])
-        po = np.array([-40, 0])
-        pno = np.array([-5, -5])
-        self.l = [po, pno]
-        for i in range(3):
-            po = produit(po, A)
-            self.l.append(po)
-            pno = produit(pno, A)
-            self.l.append(pno)
-
-    def draw(self, s=8):
-        painter = QtGui.QPainterPath()
-        if s == 8:
-            painter.moveTo((self.l[0] + self.p0)[0], (self.l[0] + self.p0)[1])
-            pen = QtGui.QPen(QtGui.QColor("grey"), 2)
-            for i in range(1, len(self.l)):
-                painter.lineTo((self.l[i] + self.p0)[0], (self.l[i] + self.p0)[1])
-            painter.lineTo((self.l[0] + self.p0)[0], (self.l[0] + self.p0)[1])
-            painter.moveTo((self.l[1] + self.p0)[0], (self.l[1] + self.p0)[1])
-            painter.lineTo((self.l[5] + self.p0)[0], (self.l[5] + self.p0)[1])
-            painter.moveTo((self.l[3] + self.p0)[0], (self.l[3] + self.p0)[1])
-            painter.lineTo((self.l[7] + self.p0)[0], (self.l[7] + self.p0)[1])
-            self.roseItem = QtWidgets.QGraphicsPathItem(painter, self)
-            self.roseItem.setPen(pen)
-        else:
-            self.removeFromGroup(self.dirItem)
-            pen = QtGui.QPen(QtGui.QColor("#00FF22"), 4)
-            painter.moveTo(self.p0[0], self.p0[1])
-            for i in range(-1, 2):
-                painter.lineTo((self.l[s + i] + self.p0)[0], (self.l[s + i] + self.p0)[1])
-            painter.lineTo(self.p0[0], self.p0[1])
-            self.dirItem = QtWidgets.QGraphicsPathItem(painter, self)
-            self.dirItem.setPen(pen)
-
-
-class NodeItems(QtWidgets.QGraphicsItemGroup):
-    def __init__(self, ihm, node):
-        super().__init__()
-        self.ihm = ihm
-        self.node = node
-        a = self.node.coord.adapt_scale()
-        self.nodeItem = QtWidgets.QGraphicsEllipseItem(a.x, a.y, 6, 6, self)
-        self.nodeItem.setBrush(QtGui.QBrush(QtGui.QColor("#0000CC")))
-        self.nodeItem.setToolTip(self.node.id)
-
-
-class Windlocal_Item(QtWidgets.QGraphicsItemGroup):
-    def __init__(self, ihm, windlocal):
-        super().__init__()
-        self.ihm = ihm
-        self.windlocal = windlocal
-        pen = QtGui.QPen(QtGui.QColor("#003366"), 1)
-        vectPainter = QtGui.QPainterPath()
-        p1, p2, p3, p4 = self.windlocal.arrow_repr()
-        vectPainter.addEllipse(p1[0], p1[1], 2, 2)
-        vectPainter.moveTo(p1[0] + 1, p1[1] + 1)
-        vectPainter.lineTo(p2[0] + 1, p2[1] + 1)
-        self.vectItem = QtWidgets.QGraphicsPathItem(vectPainter, self)
-        self.vectItem.setPen(pen)
-
-
-class WindPlan_Item(QtWidgets.QGraphicsItemGroup):
-    def __init__(self, ihm, windPlan):
-        super().__init__()
-        self.ihm = ihm
-        self.windPlan = windPlan
-        for wind in self.windPlan.dict.values():
-            self.addToGroup(Windlocal_Item(self.ihm, wind))
 
 
 class PanZoomView(QtWidgets.QGraphicsView):
     """An interactive view that supports Pan and Zoom functions"""
 
-    def __init__(self, scene):
-        super().__init__(scene)
+    def __init__(self, ihm):
+        super().__init__(ihm.scene)
+        self.ihm = ihm
         # enable anti-aliasing
         self.setRenderHint(QtGui.QPainter.Antialiasing)
         # enable drag and drop of the view
@@ -164,32 +67,35 @@ class PanZoomView(QtWidgets.QGraphicsView):
         self.setTransformationAnchor(self.AnchorUnderMouse)
         super().scale(factor, factor)
 
-
 class IHM(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
         self.ui = Ui_Interface()
         self.ui.setupUi(self)
         self.scene = QtWidgets.QGraphicsScene()
-        self.view = PanZoomView(self.scene)
+        self.view = PanZoomView(self)
         self.view.setEnabled(True)
-        self.view.setMinimumSize(QtCore.QSize(600, 600))
+        self.view_width = VIEW_WIDTH
+        self.view.setMinimumSize(QtCore.QSize(self.view_width + 50, self.view_width + 50))
         self.view.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.AdjustToContents)
         self.view.setObjectName("view")
         self.ui.verticalLayout_radar.addWidget(self.view)
-        self.view.raise_()
         self.view.setScene(self.scene)
         self.scene.setBackgroundBrush(QtGui.QBrush(QtGui.QColor("black")))
-        self.path_Group = QtWidgets.QGraphicsItemGroup()
-        self.nodes_Group = QtWidgets.QGraphicsItemGroup()
+        self.m = None
+        self.graph = None
+        self.graph_dim = None
+        self.wind3D_dict = None
+        self.path_Group = None
+        self.nodes_Group = None
         self.windPlanItem = None
-        self.rose = RoseDesVent()
-        self.scene.addItem(self.rose)
+        self.rose = new_items.RoseDesVents(self.scene)
 
         self.ui.pushButton_a.clicked.connect(self.load_nodes)
         self.ui.pushButton_v.clicked.connect(self.load_winds)
-        self.ui.pushButton_recherche.clicked.connect(self.search)
+        self.ui.pushButton_calculer.clicked.connect(self.search)
         self.ui.pushButton_save.clicked.connect(self.save_data)
+        self.ui.verticalSlider.valueChanged.connect(self.add_windPlan)
 
     def load_nodes(self):
         options = QtWidgets.QFileDialog.Options()
@@ -198,17 +104,24 @@ class IHM(QtWidgets.QWidget):
         if filename:
             try:
                 self.graph = arbre_oaci.arbre_creation(filename)
+                self.graph_dim = self.graph.dim()
                 self.add_nodes()
+                self.m = geometry.find_lat(filename)
+                self.ui.pushButton_v.setEnabled(True)
             except Exception:
-                error_windows = ErrorWidget(self, ERROR_1)
+                error_window = ErrorWidget(self, ERROR_1)
+                error_window.show()
 
     def add_nodes(self):
-        self.scene.removeItem(self.nodes_Group)
+        if self.nodes_Group:
+            self.scene.removeItem(self.nodes_Group)
+            if self.path_Group:
+                self.scene.removeItem(self.path_Group)
         self.nodes_Group = QtWidgets.QGraphicsItemGroup()
         for id, node in self.graph.nodes_dict.items():
             self.ui.comboBox_depart.addItem(id)
             self.ui.comboBox_arrive.addItem(id)
-            item = NodeItems(self, node)
+            item = new_items.NodeItems(self, node)
             self.nodes_Group.addToGroup(item)
             self.scene.addItem(self.nodes_Group)
         self.rose.draw()
@@ -219,43 +132,49 @@ class IHM(QtWidgets.QWidget):
                                                           options=options)
         if files:
             try:
-                self.wind3D_dict = create_wind3D_dict(files)
-                self.add_windPlan(self.wind3D_dict[20171104060000].dict[400])
+                self.wind3D_dict = create_wind3D_dict(files, self.m)
+                self.ui.verticalSlider.setEnabled(True)
+                self.ui.pushButton_calculer.setEnabled(True)
+                self.add_windPlan()
+                self.ui.timeEdit.timeChanged.connect(self.add_windPlan)
             except Exception:
-                error_windows = ErrorWidget(self, ERROR_1)
+                error_window = ErrorWidget(self, ERROR_1)
+                error_window.show()
 
-    def add_windPlan(self, windPlan):
+    def add_windPlan(self):
+        wind3D = arbre_oaci.get_wind3D(self.wind3D_dict, arbre_oaci.time(self.ui.timeEdit.text()))
+        (alt, windPlan) = min(wind3D.dict.items(),key=lambda x: abs(x[0] - self.ui.verticalSlider.value()))
         if self.windPlanItem:
             self.scene.removeItem(self.windPlanItem)
-        self.windPlanItem = WindPlan_Item(self, windPlan)
+        self.windPlanItem = new_items.WindPlanItems(self, windPlan)
         self.scene.addItem(self.windPlanItem)
 
     def draw_path(self, flight, color, path_width, node_width):
         pen = QtGui.QPen(QtGui.QColor(color), path_width)
         painter = QtGui.QPainterPath()
         w = node_width / 2
-        a = flight.dep.coord.adapt_scale()
+        a = flight.dep.coord.adapt_scale(self.view_width, self.graph_dim)
         painter.moveTo(a.x + w, a.y + w)
         for k in range(len(flight.path) - 1):
-            b = self.graph.nodes_dict[flight.path[k + 1]].coord.adapt_scale()
+            b = self.graph.nodes_dict[flight.path[k + 1]].coord.adapt_scale(self.view_width, self.graph_dim)
             painter.lineTo(b.x + w, b.y + w)
         item = QtWidgets.QGraphicsPathItem(painter, self.path_Group)
         item.setPen(pen)
         item.setToolTip("Trajectoire avec vent") if node_width >= 8 else item.setToolTip("Trajectoire sans vent")
         for id in flight.path:
-            b = self.graph.nodes_dict[id].coord.adapt_scale()
+            b = self.graph.nodes_dict[id].coord.adapt_scale(self.view_width, self.graph_dim)
             item2 = QtWidgets.QGraphicsEllipseItem(b.x, b.y, node_width, node_width, self.path_Group)
             item2.setBrush(QtGui.QBrush(QtGui.QColor("#00FFEF")))
             item2.setToolTip(id)
         self.scene.addItem(self.path_Group)
-        self.rose.draw(get_direction(flight.dep.coord, flight.arr.coord))
 
     def reinitialize(self, graph):
         for (id, node) in graph.nodes_dict.items():
             node.parent, node.H, node.G = None, 0, 0
 
     def search(self):
-        self.scene.removeItem(self.path_Group)
+        if self.path_Group:
+            self.scene.removeItem(self.path_Group)
         self.path_Group = QtWidgets.QGraphicsItemGroup()
         while range(self.ui.listWidget.count()):
             self.ui.listWidget.takeItem(0)
@@ -273,6 +192,7 @@ class IHM(QtWidgets.QWidget):
             flight2 = find_path(dep, arr, timeStart, airplane, self.wind3D_dict, self.graph, False)
             self.draw_path(flight2, "#BF22B4", 2, 6)
             self.draw_path(self.flight1, "#00FF22", 3, 8)
+            self.rose.draw(self.rose.get_dir(dep.coord, arr.coord))
             self.ui.listWidget.addItem("chemin avec vent : " + str(self.flight1.path))
             self.ui.listWidget.addItem("durée minimale = " + str(arbre_oaci.hms(self.flight1.duration)))
             self.ui.listWidget.addItem("pression optimale = " + str(self.flight1.pression) + " hPa")
@@ -280,8 +200,10 @@ class IHM(QtWidgets.QWidget):
             self.ui.pushButton_save.setEnabled(True)
         except arbre_oaci.NoPathError:
             error_window = ErrorWidget(self, ERROR_2)
+            error_window.show()
         except Exception:
             error_window = ErrorWidget(self, ERROR_3)
+            error_window.show()
 
     def load_saveFile(self):
         options = QtWidgets.QFileDialog.Options()
@@ -292,7 +214,8 @@ class IHM(QtWidgets.QWidget):
                 self.wind3D_dict = create_wind3D_dict(file)
                 self.add_windPlan(self.wind3D_dict[20171104060000].dict[400])
             except Exception:
-                error_windows = ErrorWidget(self, ERROR_1)
+                error_window = ErrorWidget(self, ERROR_1)
+                error_window.show()
 
     def save_data(self):
         options = QtWidgets.QFileDialog.Options()
