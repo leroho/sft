@@ -9,7 +9,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>738</width>
+    <width>691</width>
     <height>600</height>
    </rect>
   </property>
@@ -41,7 +41,7 @@
    <string notr="true"/>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="1" rowspan="5">
+   <item row="0" column="1" rowspan="4">
     <layout class="QVBoxLayout" name="verticalLayout_radar">
      <property name="sizeConstraint">
       <enum>QLayout::SetDefaultConstraint</enum>
@@ -59,6 +59,40 @@
       <number>0</number>
      </property>
     </layout>
+   </item>
+   <item row="1" column="2">
+    <widget class="QLCDNumber" name="lcdNumber_pression">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>30</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>40</width>
+       <height>40</height>
+      </size>
+     </property>
+     <property name="font">
+      <font>
+       <weight>50</weight>
+       <bold>false</bold>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true"/>
+     </property>
+     <property name="digitCount">
+      <number>3</number>
+     </property>
+    </widget>
    </item>
    <item row="0" column="0" rowspan="2">
     <layout class="QVBoxLayout" name="verticalLayout">
@@ -78,60 +112,21 @@
       <number>10</number>
      </property>
      <item>
-      <layout class="QHBoxLayout" name="aerodromes">
-       <property name="sizeConstraint">
-        <enum>QLayout::SetDefaultConstraint</enum>
+      <layout class="QGridLayout" name="gridLayout_3">
+       <property name="rightMargin">
+        <number>10</number>
        </property>
-       <property name="topMargin">
-        <number>0</number>
+       <property name="bottomMargin">
+        <number>10</number>
        </property>
-       <item>
+       <item row="1" column="0">
         <widget class="QLabel" name="label_10">
          <property name="text">
           <string>Fichier des aérodromes</string>
          </property>
         </widget>
        </item>
-       <item>
-        <widget class="QPushButton" name="pushButton_a">
-         <property name="enabled">
-          <bool>true</bool>
-         </property>
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>16777215</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="text">
-          <string>Parcourir...</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
-     <item>
-      <layout class="QHBoxLayout" name="Vents">
-       <property name="topMargin">
-        <number>0</number>
-       </property>
-       <property name="bottomMargin">
-        <number>10</number>
-       </property>
-       <item>
-        <widget class="QLabel" name="label_11">
-         <property name="text">
-          <string>Fichiers des vents</string>
-         </property>
-        </widget>
-       </item>
-       <item>
+       <item row="2" column="1">
         <widget class="QPushButton" name="pushButton_v">
          <property name="enabled">
           <bool>false</bool>
@@ -153,14 +148,36 @@
          </property>
         </widget>
        </item>
-      </layout>
-     </item>
-     <item>
-      <layout class="QHBoxLayout" name="dep">
-       <property name="rightMargin">
-        <number>0</number>
-       </property>
-       <item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_11">
+         <property name="text">
+          <string>Fichiers des vents</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QPushButton" name="pushButton_a">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>Parcourir...</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
         <widget class="QLabel" name="label_12">
          <property name="styleSheet">
           <string notr="true"/>
@@ -173,36 +190,7 @@
          </property>
         </widget>
        </item>
-       <item>
-        <widget class="QComboBox" name="comboBox_depart">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="minimumSize">
-          <size>
-           <width>120</width>
-           <height>0</height>
-          </size>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>16777215</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="editable">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
-     <item>
-      <layout class="QHBoxLayout" name="arr">
-       <item>
+       <item row="4" column="0">
         <widget class="QLabel" name="label_13">
          <property name="styleSheet">
           <string notr="true"/>
@@ -212,8 +200,58 @@
          </property>
         </widget>
        </item>
-       <item>
-        <widget class="QComboBox" name="comboBox_arrive">
+       <item row="5" column="0">
+        <widget class="QLabel" name="label_14">
+         <property name="styleSheet">
+          <string notr="true"/>
+         </property>
+         <property name="text">
+          <string>Heure du vol (hh:mm:ss)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="0">
+        <widget class="QLabel" name="label_15">
+         <property name="styleSheet">
+          <string notr="true"/>
+         </property>
+         <property name="text">
+          <string>Vitesse de croisière</string>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="0">
+        <widget class="QLabel" name="label_16">
+         <property name="styleSheet">
+          <string notr="true"/>
+         </property>
+         <property name="text">
+          <string>Pression minimale (hPa)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="8" column="0">
+        <widget class="QLabel" name="label_17">
+         <property name="styleSheet">
+          <string notr="true"/>
+         </property>
+         <property name="text">
+          <string>Pression maximale (hPa)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="9" column="0">
+        <widget class="QLabel" name="label_18">
+         <property name="styleSheet">
+          <string notr="true"/>
+         </property>
+         <property name="text">
+          <string>Temps d'arrêt (min)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="QComboBox" name="comboBox_depart">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
            <horstretch>0</horstretch>
@@ -222,7 +260,7 @@
          </property>
          <property name="minimumSize">
           <size>
-           <width>120</width>
+           <width>0</width>
            <height>0</height>
           </size>
          </property>
@@ -237,21 +275,32 @@
          </property>
         </widget>
        </item>
-      </layout>
-     </item>
-     <item>
-      <layout class="QHBoxLayout" name="heure_du_vol">
-       <item>
-        <widget class="QLabel" name="label_14">
-         <property name="styleSheet">
-          <string notr="true"/>
+       <item row="4" column="1">
+        <widget class="QComboBox" name="comboBox_arrive">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
          </property>
-         <property name="text">
-          <string>Heure du vol (hh:mm:ss)</string>
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="editable">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
-       <item>
+       <item row="5" column="1">
         <widget class="QTimeEdit" name="timeEdit">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -261,7 +310,7 @@
          </property>
          <property name="minimumSize">
           <size>
-           <width>120</width>
+           <width>0</width>
            <height>0</height>
           </size>
          </property>
@@ -279,24 +328,7 @@
          </property>
         </widget>
        </item>
-      </layout>
-     </item>
-     <item>
-      <layout class="QHBoxLayout" name="vitesse">
-       <property name="bottomMargin">
-        <number>0</number>
-       </property>
-       <item>
-        <widget class="QLabel" name="label_15">
-         <property name="styleSheet">
-          <string notr="true"/>
-         </property>
-         <property name="text">
-          <string>Vitesse de croisière</string>
-         </property>
-        </widget>
-       </item>
-       <item>
+       <item row="6" column="1">
         <widget class="QSpinBox" name="spinBox_vitesse">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -306,7 +338,7 @@
          </property>
          <property name="minimumSize">
           <size>
-           <width>120</width>
+           <width>0</width>
            <height>0</height>
           </size>
          </property>
@@ -327,24 +359,7 @@
          </property>
         </widget>
        </item>
-      </layout>
-     </item>
-     <item>
-      <layout class="QHBoxLayout" name="altitude_min">
-       <property name="bottomMargin">
-        <number>0</number>
-       </property>
-       <item>
-        <widget class="QLabel" name="label_16">
-         <property name="styleSheet">
-          <string notr="true"/>
-         </property>
-         <property name="text">
-          <string>Pression minimale (hPa)</string>
-         </property>
-        </widget>
-       </item>
-       <item>
+       <item row="7" column="1">
         <widget class="QSpinBox" name="spinBox_pression_inf">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -354,7 +369,7 @@
          </property>
          <property name="minimumSize">
           <size>
-           <width>120</width>
+           <width>0</width>
            <height>0</height>
           </size>
          </property>
@@ -378,24 +393,7 @@
          </property>
         </widget>
        </item>
-      </layout>
-     </item>
-     <item>
-      <layout class="QHBoxLayout" name="altitude_max">
-       <property name="bottomMargin">
-        <number>0</number>
-       </property>
-       <item>
-        <widget class="QLabel" name="label_17">
-         <property name="styleSheet">
-          <string notr="true"/>
-         </property>
-         <property name="text">
-          <string>Pression maximale (hPa)</string>
-         </property>
-        </widget>
-       </item>
-       <item>
+       <item row="8" column="1">
         <widget class="QSpinBox" name="spinBox_pression_sup">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -405,7 +403,7 @@
          </property>
          <property name="minimumSize">
           <size>
-           <width>120</width>
+           <width>0</width>
            <height>0</height>
           </size>
          </property>
@@ -432,24 +430,7 @@
          </property>
         </widget>
        </item>
-      </layout>
-     </item>
-     <item>
-      <layout class="QHBoxLayout" name="horizontalLayout_4">
-       <property name="bottomMargin">
-        <number>0</number>
-       </property>
-       <item>
-        <widget class="QLabel" name="label_18">
-         <property name="styleSheet">
-          <string notr="true"/>
-         </property>
-         <property name="text">
-          <string>Temps d'arrêt (min)</string>
-         </property>
-        </widget>
-       </item>
-       <item>
+       <item row="9" column="1">
         <widget class="QSpinBox" name="spinBox_tempsdarret">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -459,7 +440,7 @@
          </property>
          <property name="minimumSize">
           <size>
-           <width>120</width>
+           <width>0</width>
            <height>0</height>
           </size>
          </property>
@@ -564,88 +545,40 @@
     </layout>
    </item>
    <item row="0" column="2">
-    <layout class="QVBoxLayout" name="verticalLayout_2">
-     <property name="sizeConstraint">
-      <enum>QLayout::SetDefaultConstraint</enum>
+    <widget class="QSlider" name="verticalSlider">
+     <property name="enabled">
+      <bool>false</bool>
      </property>
-     <item alignment="Qt::AlignHCenter">
-      <widget class="QLabel" name="label_3">
-       <property name="text">
-        <string>hPa</string>
-       </property>
-      </widget>
-     </item>
-     <item alignment="Qt::AlignHCenter">
-      <widget class="QSlider" name="verticalSlider">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>0</width>
-         <height>200</height>
-        </size>
-       </property>
-       <property name="minimum">
-        <number>400</number>
-       </property>
-       <property name="maximum">
-        <number>800</number>
-       </property>
-       <property name="singleStep">
-        <number>100</number>
-       </property>
-       <property name="tracking">
-        <bool>true</bool>
-       </property>
-       <property name="orientation">
-        <enum>Qt::Vertical</enum>
-       </property>
-      </widget>
-     </item>
-     <item alignment="Qt::AlignHCenter">
-      <widget class="QLCDNumber" name="lcdNumber_pression">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>0</width>
-         <height>30</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>40</width>
-         <height>40</height>
-        </size>
-       </property>
-       <property name="font">
-        <font>
-         <weight>50</weight>
-         <bold>false</bold>
-        </font>
-       </property>
-       <property name="styleSheet">
-        <string notr="true"/>
-       </property>
-       <property name="digitCount">
-        <number>3</number>
-       </property>
-      </widget>
-     </item>
-    </layout>
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="minimum">
+      <number>400</number>
+     </property>
+     <property name="maximum">
+      <number>800</number>
+     </property>
+     <property name="singleStep">
+      <number>100</number>
+     </property>
+     <property name="tracking">
+      <bool>true</bool>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+    </widget>
    </item>
-   <item row="2" column="0" rowspan="3">
+   <item row="2" column="0" rowspan="2">
     <widget class="QListWidget" name="listWidget">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Maximum" vsizetype="Expanding">
@@ -670,34 +603,6 @@
      </property>
      <property name="sizeAdjustPolicy">
       <enum>QAbstractScrollArea::AdjustToContents</enum>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="2" rowspan="2">
-    <widget class="QFrame" name="frame">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="minimumSize">
-      <size>
-       <width>50</width>
-       <height>0</height>
-      </size>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>50</width>
-       <height>16777215</height>
-      </size>
-     </property>
-     <property name="frameShape">
-      <enum>QFrame::StyledPanel</enum>
-     </property>
-     <property name="frameShadow">
-      <enum>QFrame::Raised</enum>
      </property>
     </widget>
    </item>

@@ -76,7 +76,7 @@ class IHM(QtWidgets.QWidget):
         self.view = PanZoomView(self)
         self.view.setEnabled(True)
         self.view_width = VIEW_WIDTH
-        self.view.setMinimumSize(QtCore.QSize(self.view_width + 50, self.view_width + 50))
+        #self.view.setMinimumSize(QtCore.QSize(self.view_width + 50, self.view_width + 50))
         self.view.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.AdjustToContents)
         self.view.setObjectName("view")
         self.ui.verticalLayout_radar.addWidget(self.view)

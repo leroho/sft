@@ -4,5 +4,5 @@ from interface import IHM
 
 app = QApplication(sys.argv)
 my_IHM = IHM()
-my_IHM.show()
+my_IHM.showMaximized()
 sys.exit(app.exec_())
