@@ -1,8 +1,8 @@
 """Geometry classes and utilities."""
 from numpy import arccos, cos, pi
 
+
 class Point(object):
-    """Meters coordinates, with attributes long, y: int"""
 
     def __init__(self, a, b, lat_moy=None):
         self.lat_moy = lat_moy
@@ -10,7 +10,7 @@ class Point(object):
             self.long = a
             self.lat = b
             rayon_terrestre = 6371000
-            long_to_x = rayon_terrestre * cos(lat_moy*pi/180) * (pi / 180)
+            long_to_x = rayon_terrestre * cos(lat_moy * pi / 180) * (pi / 180)
             lat_to_y = rayon_terrestre * (pi / 180)
             self.x = self.long * long_to_x
             self.y = self.lat * lat_to_y
@@ -55,7 +55,7 @@ class Point(object):
         min_x, max_x, min_y, max_y = liste
         width = max_x - min_x
         height = max_y - min_y
-        view_height = view_width*height/width
+        view_height = view_width * height / width
         pt = Point(self.long, self.lat, self.lat_moy)
         pt.x = (pt.x - min_x) * view_width / width
         pt.y = (max_y - pt.y) * view_height / height
@@ -98,13 +98,15 @@ class Vect():
     def angle(self, other):
         return arccos(self.sca(other) / (abs(self) * abs(other)))
 
+
 def find_lat(file):
     with open(file, "r") as f:
         liste = []
         for line in f:
             l = line.strip().split()
             liste.append(float(l[-1]))
-    return (min(liste) + max(liste))/2
+    return (min(liste) + max(liste)) / 2
+
 
 def from_file(file):
     dict = {}
@@ -113,5 +115,5 @@ def from_file(file):
         for line in f:
             l = line.strip().split()
             long, lat = float(l[-2]), float(l[-1])
-            dict[l[1]] = Point(long, lat, lat_moy = m)
+            dict[l[1]] = Point(long, lat, lat_moy=m)
     return dict

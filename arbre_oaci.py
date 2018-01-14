@@ -1,10 +1,11 @@
 import geometry
-from wind import from_file
-
+import travel
+from numpy import cos, sin, pi
 
 class Graph():
     def __init__(self):
         self.nodes_dict = {}
+        self.parent_edge = {}
 
     def add(self, node):
         self.nodes_dict[node.id] = node
@@ -21,6 +22,7 @@ class Graph():
         min_y = min(node.coord.y for node in self.nodes_dict.values())
         max_y = max(node.coord.y for node in self.nodes_dict.values())
         return min_x, max_x, min_y, max_y
+
 class Node():
     """represente un aedrome dans le graphe
         - id: string code OACI
@@ -39,39 +41,48 @@ class Node():
     def __repr__(self):
         return "<Node {0.id}: {0.coord}>".format(self)
 
-    def voisins(self, airplane, windPlan, graphe, with_wind):
+    def voisins(self, airplane, graphe, windPlan):
         """voisin(node, airplane.Airplane, wind.WindPlan, Graph, bool) return dict
         renvoie le dictionnaire des voisins à moin de X min"""
         dico = {}
         for (id, node) in graphe.nodes_dict.items():
             if id != self.id:
-                duration = airplane.trajectory(self.coord, node.coord, windPlan, with_wind)
-                if duration <= airplane.X:
-                    dico[id] = duration
+                edge = Edge(self, node)
+                edge.calcul(airplane, windPlan=windPlan)
+                if edge.duration <= airplane.X:
+                    dico[id] = edge
         return dico
 
-
-class Flight():
-    """represente le vol entre 2 aerodromes données
-        -dep: Node aerodrome de départ
-        -arr: Node aerodrome d'arrivé
-        -pression: int pression du vol considéré
-        -time_start: float heure de départ en secondes
-        -duration: float durée du trajet
-        -path: list liste des id des aerodromes suivis"""
-
-    def __init__(self, dep, arr, pression, time_start):
+class Edge():
+    def __init__(self, dep, arr):
         self.dep = dep
         self.arr = arr
-        self.pression = pression
-        self.time_start = time_start
         self.duration = None
-        self.path = None
+        self.windvect = None
+        self.windangle = None
+        self.deviation = None
+        self.groundspeed = None
 
-    def __repr__(self):
-        return "flight : pression = {0.pression} hPa ; ".format(self) + "duration = " + str(
-            hms(self.duration)) + " ; path = {0.path}".format(self)
-
+    def calcul(self, airplane, windPlan=None):
+        ab_vect = geometry.Vect(self.arr.coord.x - self.dep.coord.x, self.arr.coord.y - self.dep.coord.y)
+        if windPlan:
+            self.windvect = windPlan.windGlobal(self.dep.coord, self.arr.coord)
+            if abs(self.windvect) != 0:
+                self.windangle = ab_vect.angle(self.windvect)
+                vent_effectif = abs(self.windvect) * cos(self.windangle)
+                self.deviation = (60 / airplane.v_c) * abs(self.windvect) * sin(self.windangle) * (pi / 180)
+                self.groundspeed = vent_effectif + airplane.v_c * cos(self.deviation)
+                self.duration = abs(ab_vect) / self.groundspeed
+            else:
+                self.windangle = 0
+                self.deviation = 0
+                self.groundspeed = airplane.v_c
+                self.duration = abs(ab_vect) / self.groundspeed
+        else:
+            self.windangle = 0
+            self.deviation = 0
+            self.groundspeed = airplane.v_c
+            self.duration = abs(ab_vect) / self.groundspeed
 
 def arbre_creation(filename):
     """arbre_creation(str) return Graph
@@ -83,8 +94,7 @@ def arbre_creation(filename):
         graphe.add(node)
     return graphe
 
-
-def diagonal(node1, node2, airplane, windPlan, with_wind):
+def diagonal(node1, node2, airplane, windPlan):
     """
     :param node1: Node premier aerodrome
     :param node2: Node deuxième aerodrome
@@ -93,14 +103,17 @@ def diagonal(node1, node2, airplane, windPlan, with_wind):
     :param with_wind: bool avec ou sans vent
     :return: float durée en seconde
     renvoie l'estimation de la durée du trajet entr node1 et node2"""
-    return 0 if node1.id == node2.id else airplane.trajectory(node1.coord, node2.coord, windPlan, with_wind)
-
+    if node1.id == node2.id:
+        return 0
+    else:
+        edge = Edge(node1, node2)
+        edge.calcul(airplane, windPlan=windPlan)
+        return edge.duration
 
 def hms(s):
     """hms(int) return str
     convertion d'une durée en seconde au format hh:mm:ss"""
     return "{:02d}:{:02d}:{:02d}".format(int(s) // 3600, int(s) // 60 % 60, int(s) % 60)
-
 
 def time(str_hms):
     """time(str) return int
@@ -108,14 +121,12 @@ def time(str_hms):
     l = str_hms.replace(':', ' ').split()
     return (int(l[0]) * 3600 + int(l[1]) * 60 + int(l[2]))
 
-
 def get_wind3D(wind3D_dict, sec):
     t = int(hms(sec).replace(':', ''))
     (date, wind3D) = min(wind3D_dict.items(), key=lambda x: abs((x[0] % 1e6) - t))
     return wind3D
 
-
-def astar(flight, airplane, wind3D_dict, graphe, with_wind):
+def astar(flight, airplane, graphe, wind3D_dict):
     """astar(Flight, Airplane, dict, Graph) return Flight
     return flight en actualisant flight.duration et flight.path"""
     openset = set()
@@ -139,26 +150,35 @@ def astar(flight, airplane, wind3D_dict, graphe, with_wind):
                 current_id = graphe.nodes_dict[current_id].parent
             flight.duration = duration
             flight.path = path[-1::-1]
+            for i in range(1, len(flight.path)):
+                id = flight.path[i]
+                edge = graphe.parent_edge[id]
+                flight.edges.append(edge)
             return flight
+
         # supprimer le noeud de openset
         openset.remove(current)
         # ajouter le noeud à closed set
         closedset.add(current)
-        wind3D = get_wind3D(wind3D_dict, flight.time_start + current.G)
-        # class = WindPlan : permet d'obtenir le dict des vent à la date "date" et à l'pressionitude "pression"
-        windPlan = wind3D.dict[flight.pression]
+
+        if wind3D_dict:
+            wind3D = get_wind3D(wind3D_dict, flight.time_start + current.G)
+            windPlan = wind3D.dict[flight.pression]
+        if not wind3D_dict:
+            windPlan = None
 
         # parcourir les noeuds voisins
-        for (id, duration) in current.voisins(airplane, windPlan, graphe, with_wind).items():
+        for (id, edge) in current.voisins(airplane, graphe, windPlan).items():
             node = graphe.nodes_dict[id]
             # si node est déjà dans closedset
             if node in closedset:
                 # vérifier s'il vaut mieux passer pr current
-                new_g = current.G + duration
+                new_g = current.G + edge.duration
                 if node.G > new_g:
                     # si c'est le cas, actualiser le parent de node à current
                     node.G = new_g
                     node.parent = current_id
+                    graphe.parent_edge[id] = edge
                     # remettre node dans openset
                     openset.add(node)
                     # supprimer node de closedset
@@ -166,20 +186,32 @@ def astar(flight, airplane, wind3D_dict, graphe, with_wind):
             # sinon, si node est déjà dans openset
             elif node in openset:
                 # vérifier s'il vaut mieux passer pr current
-                new_g = current.G + duration
+                new_g = current.G + edge.duration
                 if node.G > new_g:
                     # si c'est le cas, actualiser le parent de node à current
                     node.G = new_g
                     node.parent = current_id
+                    graphe.parent_edge[id] = edge
             else:
                 # sinon, calculer G et H de node
-                node.G = current.G + duration
-                node.H = diagonal(node, flight.arr, airplane, windPlan, with_wind)
+                node.G = current.G + edge.duration
+                node.H = diagonal(node, flight.arr, airplane, windPlan)
                 # actualiser le parent de node à current
                 node.parent = current_id
+                graphe.parent_edge[id] = edge
                 # ajouter node à openset
                 openset.add(node)
-    # si l'arriver n'est pas atteint lever l'erreur "ValueError"
+    # si l'arriver n'est pas atteint lever l'erreur "NoPathError"
     raise NoPathError
 
 class NoPathError(Exception): pass
+
+def find_path(dep, arr, timeStart, airplane, graphe, wind3D_dict=None):
+    if wind3D_dict:
+        dico = {}
+        for pression in range(airplane.pression_inf, airplane.pression_sup + 100, 100):
+            flight = travel.Flight(dep, arr, pression, time(timeStart))
+            dico[pression] = astar(flight, airplane, graphe, wind3D_dict)
+        return min(dico.values(), key=lambda x: x.duration)
+    flight = travel.Flight(dep, arr, airplane.pression_inf, time(timeStart))
+    return astar(flight, airplane, graphe, wind3D_dict)

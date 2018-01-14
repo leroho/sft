@@ -38,7 +38,7 @@ class RoseDesVents(QtWidgets.QGraphicsItemGroup):
             if self.dirItem:
                 self.scene.removeItem(self.dirItem)
             painter.moveTo((self.l[0] + self.p0)[0], (self.l[0] + self.p0)[1])
-            pen = QtGui.QPen(QtGui.QColor("grey"), 2)
+            pen = QtGui.QPen(QtGui.QColor("black"), 2)
             for i in range(1, len(self.l)):
                 painter.lineTo((self.l[i] + self.p0)[0], (self.l[i] + self.p0)[1])
             painter.lineTo((self.l[0] + self.p0)[0], (self.l[0] + self.p0)[1])
@@ -53,7 +53,7 @@ class RoseDesVents(QtWidgets.QGraphicsItemGroup):
         else:
             if self.dirItem:
                 self.scene.removeItem(self.dirItem)
-            pen = QtGui.QPen(QtGui.QColor("#00FF22"), 4)
+            pen = QtGui.QPen(QtGui.QColor("#FF1B1C"), 4)
             painter.moveTo(self.p0[0], self.p0[1])
             for i in range(-1, 2):
                 painter.lineTo((self.l[dir + i] + self.p0)[0], (self.l[dir + i] + self.p0)[1])
@@ -81,7 +81,7 @@ class NodeItems(QtWidgets.QGraphicsItemGroup):
         self.node = node
         a = self.node.coord.adapt_scale(self.ihm.view_width, self.ihm.graph_dim)
         self.nodeItem = QtWidgets.QGraphicsEllipseItem(a.x, a.y, 6, 6, self)
-        self.nodeItem.setBrush(QtGui.QBrush(QtGui.QColor("#0000CC")))
+        self.nodeItem.setBrush(QtGui.QBrush(QtGui.QColor("black")))
         self.nodeItem.setToolTip(self.node.id)
 
 
@@ -90,7 +90,7 @@ class WindLocalItems(QtWidgets.QGraphicsItemGroup):
         super().__init__()
         self.ihm = ihm
         self.windlocal = windlocal
-        pen = QtGui.QPen(QtGui.QColor("#003366"), 1)
+        pen = QtGui.QPen(QtGui.QColor("#989898"), 1)
         vectPainter = QtGui.QPainterPath()
         p1 = int(self.windlocal.coord.adapt_scale(self.ihm.view_width, self.ihm.graph_dim).x), int(
             self.windlocal.coord.adapt_scale(self.ihm.view_width, self.ihm.graph_dim).y)
